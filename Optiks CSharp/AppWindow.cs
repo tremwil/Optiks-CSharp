@@ -35,6 +35,9 @@ namespace Optiks_CSharp
         {
             this.canvas.MouseWheel += canvas_MouseWheel;
             this.canvas.MouseMove += canvas_MouseMove;
+            this.canvas.PreviewKeyDown += canvas_PreviewKeyDown;
+
+            defaultView = new Matrix();
 
             lastSave = "";
             scene = new Scene(new List<Body>
@@ -55,7 +58,7 @@ namespace Optiks_CSharp
             }, new List<LightRay>
             {
                 new LightRay(
-                    new Ray(new Vector(150, 50), new Vector(-1, 0)),
+                    new Ray(new Vector(100, 50), new Vector(-1, 0)),
                     30,
                     new Pen(Color.Yellow, 5)
                 )
@@ -72,7 +75,7 @@ namespace Optiks_CSharp
             saveSceneBinary.DefaultExt = "opt";
 
 
-            askOpenSceneFile();
+            //askOpenSceneFile();
         }
 
         public void newScene()
@@ -148,7 +151,7 @@ namespace Optiks_CSharp
                 if (e.HResult == 2)
                 {
                     MessageBox.Show(
-                        "The file you specified is either corrupted or invalid", 
+                        "The file you specified is either corrupted or somehow invalid", 
                         "File error",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error
@@ -162,12 +165,23 @@ namespace Optiks_CSharp
             File.WriteAllBytes(path, FileStruct.toBytes(scene));
         }
 
+        private void resetView()
+        {
+            viewTransform = defaultView.Clone();
+            canvas.Invalidate();
+        }
+
         private void canvas_Paint(object sender, PaintEventArgs e)
         {
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
             scene.renderBodies(e.Graphics, viewTransform);
             scene.lightRays[0].rays[0].render(scene.lightRays[0].pen, e.Graphics, viewTransform);
+
+            Pen axisPen = new Pen(Color.FromArgb(128, 100, 100, 100), 1);
+
+            e.Graphics.DrawLine(axisPen, 0, viewTransform.OffsetY, canvas.Width, viewTransform.OffsetY);
+            e.Graphics.DrawLine(axisPen, viewTransform.OffsetX, 0, viewTransform.OffsetX, canvas.Height);
         }
 
         public void canvas_MouseWheel(object sender, MouseEventArgs e)
@@ -200,6 +214,37 @@ namespace Optiks_CSharp
             {
                 dragPos = new Point(-1, -1);
             }
+        }
+
+        private void canvas_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            debugText.Text = e.KeyData.ToString();
+
+            var mousePos = canvas.PointToClient(Cursor.Position);
+
+            // Use fake events, because lazyness is a quality
+            if (e.KeyCode == Keys.Oemplus)
+            {
+                canvas_MouseWheel(new object(), new MouseEventArgs(MouseButtons.None, 0, mousePos.X, mousePos.Y, 100));
+            }
+            if (e.KeyCode == Keys.OemMinus)
+            {
+                canvas_MouseWheel(new object(), new MouseEventArgs(MouseButtons.None, 0, mousePos.X, mousePos.Y, -100));
+            }
+            if (e.KeyCode == Keys.F1)
+            {
+                resetView();
+            }
+        }
+
+        private void canvas_MouseEnter(object sender, EventArgs e)
+        {
+            canvas.Focus();
+        }
+
+        private void canvas_MouseLeave(object sender, EventArgs e)
+        {
+            debugText.Focus();
         }
     }
 }

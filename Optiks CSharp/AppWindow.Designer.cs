@@ -51,6 +51,8 @@
             this.canvas.TabIndex = 1;
             this.canvas.TabStop = false;
             this.canvas.Paint += new System.Windows.Forms.PaintEventHandler(this.canvas_Paint);
+            this.canvas.MouseEnter += new System.EventHandler(this.canvas_MouseEnter);
+            this.canvas.MouseLeave += new System.EventHandler(this.canvas_MouseLeave);
             // 
             // AppWindow
             // 
