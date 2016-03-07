@@ -176,8 +176,9 @@ namespace Optiks_CSharp
 
             if (!collision)
             {
-                // r(t) = P + Dt;
-                endPoint = start + udir / MathExt.EPSILON;   
+                // Make ray endpoint dynamic so you can never reach it
+                var translateFactor = udir * new Vector(transform.OffsetX, transform.OffsetY);
+                endPoint = start + udir * ((g.ClipBounds.Height + g.ClipBounds.Width - translateFactor) / transform.Elements[0]);
             }
             else
             {

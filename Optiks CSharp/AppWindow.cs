@@ -15,6 +15,7 @@ namespace Optiks_CSharp
     public partial class AppWindow : Form
     {
         Matrix viewTransform = new Matrix();
+        Matrix defaultView;
         Point dragPos;
 
         Scene scene;
@@ -35,29 +36,30 @@ namespace Optiks_CSharp
             this.canvas.MouseWheel += canvas_MouseWheel;
             this.canvas.MouseMove += canvas_MouseMove;
 
-            //scene = new Scene(new List<Body>
-            //{
-            //    new Body(
-            //        new List<Line>
-            //        {
-            //            new Segment(new Vector(000, 000), new Vector(100, 100)),
-            //            new Segment(new Vector(100, 100), new Vector(000, 100)),
-            //            new Segment(new Vector(000, 100), new Vector(000, 000))
-            //        },
-            //        2.3,
-            //        BodyTypes.Reflecting,
-            //        new Pen(Color.Black, 5),
-            //        (SolidBrush)Brushes.White,
-            //        DrawTypes.Draw | DrawTypes.Fill
-            //    )
-            //}, new List<LightRay>
-            //{
-            //    new LightRay(
-            //        new Ray(new Vector(150, 50), new Vector(-1, 0)),
-            //        30,
-            //        new Pen(Color.Yellow, 5)
-            //    )
-            //});
+            lastSave = "";
+            scene = new Scene(new List<Body>
+            {
+                new Body(
+                    new List<Line>
+                    {
+                        new Segment(new Vector(000, 000), new Vector(100, 100)),
+                        new Segment(new Vector(100, 100), new Vector(000, 100)),
+                        new Segment(new Vector(000, 100), new Vector(000, 000))
+                    },
+                    2.3,
+                    BodyTypes.Reflecting,
+                    new Pen(Color.Black, 5),
+                    (SolidBrush)Brushes.White,
+                    DrawTypes.Draw | DrawTypes.Fill
+                )
+            }, new List<LightRay>
+            {
+                new LightRay(
+                    new Ray(new Vector(150, 50), new Vector(-1, 0)),
+                    30,
+                    new Pen(Color.Yellow, 5)
+                )
+            });
 
             openSceneBinary = new OpenFileDialog();
             openSceneBinary.Filter = "Optiks Scene Files (*.opt)|*.opt|All Files (*.*)|*.*";
@@ -73,6 +75,30 @@ namespace Optiks_CSharp
             askOpenSceneFile();
         }
 
+        public void newScene()
+        {
+            if (scene.bodies.Count == 0 && scene.lightRays.Count == 0 && scene.airRefractionIndex == 1)
+            {
+                return;
+            }
+
+            DialogResult ok = MessageBox.Show(
+                "Some changes have not been saved. Save now?",
+                "Not saved!",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning
+            );
+
+            if (ok == DialogResult.Yes) {
+                askSaveSceneFile(true);
+            }
+
+            viewTransform = new Matrix();
+            lastSave = "";
+            scene = new Scene(new List<Body>(), new List<LightRay>());
+            this.canvas.Invalidate();
+        }
+
         public void askOpenSceneFile()
         {
             DialogResult ok = openSceneBinary.ShowDialog();
@@ -80,16 +106,23 @@ namespace Optiks_CSharp
             if (ok == DialogResult.OK)
             {
                 sceneFromFile(openSceneBinary.FileName);
+                lastSave = openSceneBinary.FileName;
             }
         }
 
-        public void askSaveSceneFile()
+        public void askSaveSceneFile(bool useLastSave)
         {
+            if (useLastSave && lastSave != "")
+            {
+                fileFromScene(lastSave);
+            }
+
             DialogResult ok = saveSceneBinary.ShowDialog();
 
             if (ok == DialogResult.OK)
             {
                 fileFromScene(saveSceneBinary.FileName);
+                lastSave = saveSceneBinary.FileName;
             }
         }
 
@@ -98,6 +131,8 @@ namespace Optiks_CSharp
             try
             {
                 scene = FileStruct.toScene(File.ReadAllBytes(path));
+                viewTransform = new Matrix();
+                this.canvas.Invalidate();
             }
             catch (IOException e)
             {
@@ -132,6 +167,7 @@ namespace Optiks_CSharp
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
             scene.renderBodies(e.Graphics, viewTransform);
+            scene.lightRays[0].rays[0].render(scene.lightRays[0].pen, e.Graphics, viewTransform);
         }
 
         public void canvas_MouseWheel(object sender, MouseEventArgs e)
