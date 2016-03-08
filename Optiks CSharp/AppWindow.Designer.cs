@@ -30,6 +30,7 @@
         {
             this.debugText = new System.Windows.Forms.Label();
             this.canvas = new System.Windows.Forms.PictureBox();
+            this.unfocusLabel = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.canvas)).BeginInit();
             this.SuspendLayout();
             // 
@@ -51,14 +52,24 @@
             this.canvas.TabIndex = 1;
             this.canvas.TabStop = false;
             this.canvas.Paint += new System.Windows.Forms.PaintEventHandler(this.canvas_Paint);
+            this.canvas.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.canvas_MouseDoubleClick);
             this.canvas.MouseEnter += new System.EventHandler(this.canvas_MouseEnter);
             this.canvas.MouseLeave += new System.EventHandler(this.canvas_MouseLeave);
+            // 
+            // unfocusLabel
+            // 
+            this.unfocusLabel.AutoSize = true;
+            this.unfocusLabel.Location = new System.Drawing.Point(0, 0);
+            this.unfocusLabel.Name = "unfocusLabel";
+            this.unfocusLabel.Size = new System.Drawing.Size(0, 13);
+            this.unfocusLabel.TabIndex = 2;
             // 
             // AppWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 600);
+            this.Controls.Add(this.unfocusLabel);
             this.Controls.Add(this.canvas);
             this.Controls.Add(this.debugText);
             this.Name = "AppWindow";
@@ -74,6 +85,7 @@
 
         private System.Windows.Forms.Label debugText;
         private System.Windows.Forms.PictureBox canvas;
+        private System.Windows.Forms.Label unfocusLabel;
     }
 }
 

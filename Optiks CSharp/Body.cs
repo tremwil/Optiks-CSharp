@@ -30,6 +30,7 @@ namespace Optiks_CSharp
         public Pen pen;
         public SolidBrush brush;
         public GraphicsPath gpath;
+        public RectangleF bounds;
         public DrawTypes drawMode;
 
         public BodyTypes type;
@@ -66,6 +67,7 @@ namespace Optiks_CSharp
             }
 
             gpath.CloseFigure();
+            bounds = gpath.GetBounds();
         }
 
         public Body()

@@ -59,9 +59,9 @@ namespace Optiks_CSharp
             return new Vector(-Y, X);
         }
 
-        public static Vector fromAngleAndLen(double radians, double len)
+        public static Vector fromAngle(double radians)
         {
-            return new Vector(Math.Cos(radians) * len, Math.Sin(radians) * len);
+            return new Vector(Math.Cos(radians), Math.Sin(radians));
         }
 
         public void render(float w, Brush b, Graphics g)

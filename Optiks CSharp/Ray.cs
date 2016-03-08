@@ -179,9 +179,9 @@ namespace Optiks_CSharp
                 // Make ray endpoint dynamic so you can never reach it
                 var sL = new PointF[] { start }; transform.TransformPoints(sL); var nstart = sL[0];
                 Vector offset = new Vector(nstart) - start;
-                double translate = udir * offset;
+                double translate = Math.Abs(udir * offset);
 
-                endPoint = start + udir * ((g.ClipBounds.Height + g.ClipBounds.Width) / transform.Elements[0] - translate);
+                endPoint = start + udir * ((g.ClipBounds.Height + g.ClipBounds.Width) / transform.Elements[0] + translate);
 
             }
             else

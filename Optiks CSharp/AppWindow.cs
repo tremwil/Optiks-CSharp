@@ -15,8 +15,19 @@ namespace Optiks_CSharp
     public partial class AppWindow : Form
     {
         Matrix viewTransform = new Matrix();
-        Matrix defaultView;
+        Matrix defaultView = new Matrix();
         Point dragPos;
+
+        Body selectedBody = Body.NONE;
+
+        enum ViewModes
+        {
+            Edit,
+            RunSim,
+            GetInfo
+        }
+
+        ViewModes viewMode;
 
         Scene scene;
         Timer renderT;
@@ -37,7 +48,11 @@ namespace Optiks_CSharp
             this.canvas.MouseMove += canvas_MouseMove;
             this.canvas.PreviewKeyDown += canvas_PreviewKeyDown;
 
+            viewMode = ViewModes.Edit;
+
             defaultView = new Matrix();
+            defaultView.Scale(10, 10, MatrixOrder.Append);
+            defaultView.Translate(canvas.Width / 2, canvas.Height / 2, MatrixOrder.Append);
 
             lastSave = "";
             scene = new Scene(new List<Body>
@@ -51,18 +66,20 @@ namespace Optiks_CSharp
                     },
                     2.3,
                     BodyTypes.Reflecting,
-                    new Pen(Color.Black, 5),
+                    new Pen(Color.Black, 2),
                     (SolidBrush)Brushes.White,
                     DrawTypes.Draw | DrawTypes.Fill
                 )
             }, new List<LightRay>
             {
                 new LightRay(
-                    new Ray(new Vector(100, 50), new Vector(-1, 0)),
+                    new Ray(new Vector(100, 75), Vector.fromAngle(Math.PI * 1.125)),
                     30,
-                    new Pen(Color.Yellow, 5)
+                    new Pen(Color.Yellow, 2)
                 )
             });
+
+            scene.physicsTick();
 
             openSceneBinary = new OpenFileDialog();
             openSceneBinary.Filter = "Optiks Scene Files (*.opt)|*.opt|All Files (*.*)|*.*";
@@ -94,6 +111,11 @@ namespace Optiks_CSharp
 
             if (ok == DialogResult.Yes) {
                 askSaveSceneFile(true);
+            }
+
+            if (ok == DialogResult.None)
+            {
+                return;
             }
 
             viewTransform = new Matrix();
@@ -182,6 +204,24 @@ namespace Optiks_CSharp
 
             e.Graphics.DrawLine(axisPen, 0, viewTransform.OffsetY, canvas.Width, viewTransform.OffsetY);
             e.Graphics.DrawLine(axisPen, viewTransform.OffsetX, 0, viewTransform.OffsetX, canvas.Height);
+
+            if (selectedBody)
+            {
+                var points = new PointF[] { selectedBody.bounds.Location,
+                    selectedBody.bounds.Location + selectedBody.bounds.Size };
+
+                viewTransform.TransformPoints(points);
+                e.Graphics.DrawRectangle(
+                    new Pen(Color.LightGreen, 2), 
+                    points[0].X, 
+                    points[0].Y, 
+                    points[1].X - points[0].X, 
+                    points[1].Y - points[0].Y
+                );
+            }
+
+            Color col = canvas.Focused ? Color.Black : Color.DimGray;
+            ControlPaint.DrawBorder(e.Graphics, canvas.ClientRectangle, col, ButtonBorderStyle.Solid);
         }
 
         public void canvas_MouseWheel(object sender, MouseEventArgs e)
@@ -225,11 +265,11 @@ namespace Optiks_CSharp
             // Use fake events, because lazyness is a quality
             if (e.KeyCode == Keys.Oemplus)
             {
-                canvas_MouseWheel(new object(), new MouseEventArgs(MouseButtons.None, 0, mousePos.X, mousePos.Y, 100));
+                canvas_MouseWheel(false, new MouseEventArgs(MouseButtons.None, 0, mousePos.X, mousePos.Y, 100));
             }
             if (e.KeyCode == Keys.OemMinus)
             {
-                canvas_MouseWheel(new object(), new MouseEventArgs(MouseButtons.None, 0, mousePos.X, mousePos.Y, -100));
+                canvas_MouseWheel(false, new MouseEventArgs(MouseButtons.None, 0, mousePos.X, mousePos.Y, -100));
             }
             if (e.KeyCode == Keys.F1)
             {
@@ -237,14 +277,38 @@ namespace Optiks_CSharp
             }
         }
 
+        private void canvas_MouseLeave(object sender, EventArgs e)
+        {
+            unfocusLabel.Focus();
+            canvas.Invalidate();
+        }
+
         private void canvas_MouseEnter(object sender, EventArgs e)
         {
             canvas.Focus();
+            canvas.Invalidate();
         }
 
-        private void canvas_MouseLeave(object sender, EventArgs e)
+        private void canvas_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            debugText.Focus();
+            Matrix viewMatInvert = viewTransform.Clone(); viewMatInvert.Invert();
+            PointF[] lP = new PointF[] { e.Location }; viewMatInvert.TransformPoints(lP);
+            PointF worldPoint = lP[0];
+
+            selectedBody = Body.NONE;
+
+            List<Body> lB = scene.bodies;
+            lB.Sort((x1, x2) => (int)(x1.bounds.Height * x1.bounds.Width - x2.bounds.Height * x2.bounds.Width));
+
+            foreach (Body b in lB)
+            {
+                if (b.gpath.IsVisible(worldPoint))
+                {
+                    selectedBody = b;
+                }
+            }
+
+            canvas.Invalidate();
         }
     }
 }
