@@ -12,6 +12,22 @@ using System.Drawing.Drawing2D;
 
 namespace Optiks_CSharp
 {
+    enum ViewModes
+    {
+        /// <summary>
+        /// Mode in which the user can interact and modify the scene.
+        /// </summary>
+        Edit,
+        /// <summary>
+        /// Mode in which the user waits for the simulation to finish.
+        /// </summary>
+        RunSim,
+        /// <summary>
+        /// Mode in which the user can retrieve information from the simulation.
+        /// </summary>
+        GetInfo
+    }
+
     public partial class AppWindow : Form
     {
         Matrix viewTransform = new Matrix();
@@ -19,13 +35,7 @@ namespace Optiks_CSharp
         Point dragPos;
 
         Body selectedBody = Body.NONE;
-
-        enum ViewModes
-        {
-            Edit,
-            RunSim,
-            GetInfo
-        }
+        LightRay selectedLightRay = LightRay.NONE;
 
         ViewModes viewMode;
 
@@ -60,9 +70,9 @@ namespace Optiks_CSharp
                 new Body(
                     new List<Line>
                     {
-                        new Segment(new Vector(000, 000), new Vector(100, 100)),
-                        new Segment(new Vector(100, 100), new Vector(000, 100)),
-                        new Segment(new Vector(000, 100), new Vector(000, 000))
+                        new Curve(new Vector(0, 0), new Vector(1, 1), 0.1),
+                        new Segment(new Vector(1, 1), new Vector(0, 1)),
+                        new Segment(new Vector(0, 1), new Vector(0, 0))
                     },
                     2.3,
                     BodyTypes.Reflecting,
@@ -73,13 +83,11 @@ namespace Optiks_CSharp
             }, new List<LightRay>
             {
                 new LightRay(
-                    new Ray(new Vector(100, 75), Vector.fromAngle(Math.PI * 1.125)),
+                    new Ray(new Vector(1, 0.5), Vector.fromAngle(Math.PI)),
                     30,
                     new Pen(Color.Yellow, 2)
                 )
             });
-
-            scene.physicsTick();
 
             openSceneBinary = new OpenFileDialog();
             openSceneBinary.Filter = "Optiks Scene Files (*.opt)|*.opt|All Files (*.*)|*.*";
@@ -197,14 +205,19 @@ namespace Optiks_CSharp
         {
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
-            scene.renderBodies(e.Graphics, viewTransform);
-            scene.lightRays[0].rays[0].render(scene.lightRays[0].pen, e.Graphics, viewTransform);
+            scene.renderBodies(e.Graphics, viewTransform, viewMode);
+            scene.renderLightRays(e.Graphics, viewTransform, viewMode);
 
             Pen axisPen = new Pen(Color.FromArgb(128, 100, 100, 100), 1);
 
+            debugText.Text = scene.bodies[0].segments[0].pointCW.ToString();
+
+
+            //Graph section
             e.Graphics.DrawLine(axisPen, 0, viewTransform.OffsetY, canvas.Width, viewTransform.OffsetY);
             e.Graphics.DrawLine(axisPen, viewTransform.OffsetX, 0, viewTransform.OffsetX, canvas.Height);
 
+            //Selected hitbox & body
             if (selectedBody)
             {
                 var points = new PointF[] { selectedBody.bounds.Location,
@@ -218,9 +231,26 @@ namespace Optiks_CSharp
                     points[1].X - points[0].X, 
                     points[1].Y - points[0].Y
                 );
+
+                foreach (Line l in selectedBody.segments)
+                {
+                    if (l.type == LineTypes.Straight) { continue; }
+
+                    Vector focus = l.center + l.pointCW * l.radius / 2 * l.normal;
+                    points = new PointF[] { focus };
+                    viewTransform.TransformPoints(points);
+                    new Vector(points[0]).render(3, Brushes.Green, e.Graphics);
+                }
             }
 
-            Color col = canvas.Focused ? Color.Black : Color.DimGray;
+            //Seected lightray
+            if (selectedLightRay)
+            {
+                selectedLightRay.rays[0].render(selectedLightRay.pen, e.Graphics, viewTransform);
+            }
+
+            //Sides chaange color when you are focused
+            Color col = canvas.Focused ? Color.Black : Color.LightGray;
             ControlPaint.DrawBorder(e.Graphics, canvas.ClientRectangle, col, ButtonBorderStyle.Solid);
         }
 
@@ -291,20 +321,39 @@ namespace Optiks_CSharp
 
         private void canvas_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            Matrix viewMatInvert = viewTransform.Clone(); viewMatInvert.Invert();
-            PointF[] lP = new PointF[] { e.Location }; viewMatInvert.TransformPoints(lP);
-            PointF worldPoint = lP[0];
+            if (viewMode != ViewModes.Edit)
+            {
+                return;
+            }
 
+            selectedLightRay = LightRay.NONE;
             selectedBody = Body.NONE;
 
+            foreach (LightRay r in scene.lightRays)
+            {
+                var points = new PointF[] { r.rays[0].start };
+                viewTransform.TransformPoints(points);
+
+                if ((new Vector(e.X, e.Y) - new Vector(points[0])).lenSqr() <= 25) {
+                    selectedLightRay = r;
+                    canvas.Invalidate();
+                    return;
+                }
+            }
+
             List<Body> lB = scene.bodies;
-            lB.Sort((x1, x2) => (int)(x1.bounds.Height * x1.bounds.Width - x2.bounds.Height * x2.bounds.Width));
+            lB.Sort((x1, x2) => (int)(x2.bounds.Height * x2.bounds.Width - x1.bounds.Height * x1.bounds.Width));
 
             foreach (Body b in lB)
             {
-                if (b.gpath.IsVisible(worldPoint))
+                GraphicsPath gPath = (GraphicsPath)b.gpath.Clone();
+                gPath.Transform(viewTransform);
+
+                if (gPath.IsVisible(e.Location))
                 {
                     selectedBody = b;
+                    canvas.Invalidate();
+                    return;
                 }
             }
 

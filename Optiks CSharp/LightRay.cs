@@ -14,7 +14,10 @@ namespace Optiks_CSharp
         public int maxRays;
         public Pen pen;
 
-        private bool stopped;
+        public bool stopped;
+
+        private bool empty;
+        public static LightRay NONE = new LightRay();
 
         public LightRay(Ray startRay, int maxRays, Pen p)
         {
@@ -22,14 +25,38 @@ namespace Optiks_CSharp
             this.maxRays = maxRays;
             pen = p;
             stopped = false;
+            empty = false;
         }
 
-        public void render(Graphics g, Matrix t)
+        public LightRay()
         {
-            int e = (stopped) ? rays.Count : rays.Count - 1;
-            for (int i = 0; i < e; i++)
+            empty = true;
+        }
+
+        public static implicit operator bool (LightRay r)
+        {
+            return !r.empty;
+        }
+
+        public void render(Graphics g, Matrix t, ViewModes mode)
+        {
+            if (mode == ViewModes.RunSim || mode == ViewModes.GetInfo)
             {
-                rays[i].render(pen, g, t);
+                int e = (stopped) ? rays.Count : rays.Count - 1;
+                for (int i = 0; i < e; i++)
+                {
+                    rays[i].render(pen, g, t);
+                }
+            }
+
+            if (mode == ViewModes.Edit)
+            {
+                var points = new PointF[] { rays[0].start };
+                t.TransformPoints(points);
+
+                var v = new Vector(points[0]);
+                v.render(4, Brushes.Red, g);
+                g.DrawLine(pen, v, (v + rays[0].udir * 60));
             }
         }
 

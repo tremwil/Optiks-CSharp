@@ -61,6 +61,7 @@
     <Compile Include="Line.cs" />
     <Compile Include="Ray.cs" />
     <Compile Include="Scene.cs" />
+    <Compile Include="UIMovablePoint.cs" />
     <Compile Include="Vector.cs" />
     <EmbeddedResource Include="AppWindow.resx">
       <DependentUpon>AppWindow.cs</DependentUpon>

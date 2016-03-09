@@ -43,26 +43,20 @@ namespace Optiks_CSharp
             }
         }
 
-        public void renderBodies(Graphics g, Matrix t)
+        public void renderBodies(Graphics g, Matrix t, ViewModes mode)
         {
             foreach (Body b in bodies)
             {
-                b.render(g, t);
+                b.render(g, t, mode);
             }
         }
 
-        public void renderLightRays(Graphics g, Matrix t)
+        public void renderLightRays(Graphics g, Matrix t, ViewModes mode)
         {
             foreach (LightRay r in lightRays)
             {
-                r.render(g, t);
+                r.render(g, t, mode);
             }
-        }
-
-        public void renderTick(Graphics g, Matrix t)
-        {
-            renderBodies(g, t);
-            renderLightRays(g, t);
         }
     }
 }

@@ -48,10 +48,20 @@ namespace Optiks_CSharp
             this.pen = pen;
             this.brush = brush;
 
+            recomputeGpath();
+        }
+
+        public Body()
+        {
+            empty = true;
+        }
+
+        public void recomputeGpath()
+        {
             gpath = new GraphicsPath();
             gpath.StartFigure();
 
-            foreach(Line l in segments)
+            foreach (Line l in segments)
             {
                 if (l.type == LineTypes.Straight)
                 {
@@ -60,7 +70,7 @@ namespace Optiks_CSharp
 
                 else
                 {
-                    var v = l.focalPoint - new Vector(l.radius, l.radius);
+                    var v = l.center - new Vector(l.radius, l.radius);
                     var rect = new RectangleF(v, new SizeF((float)l.radius * 2, (float)l.radius * 2));
                     gpath.AddArc(rect, (float)l.startAngle, (float)l.sweepAngle);
                 }
@@ -70,12 +80,7 @@ namespace Optiks_CSharp
             bounds = gpath.GetBounds();
         }
 
-        public Body()
-        {
-            empty = true;
-        }
-
-        public void render(Graphics g, Matrix transform)
+        public void render(Graphics g, Matrix transform, ViewModes displayMode)
         {
             var newPath = (GraphicsPath)gpath.Clone();
             newPath.Transform(transform);
@@ -88,6 +93,13 @@ namespace Optiks_CSharp
             if (drawMode.HasFlag(DrawTypes.Fill))
             {
                 g.FillPath(brush, newPath);
+            }
+            if (displayMode == ViewModes.Edit)
+            {
+                foreach(PointF p in newPath.PathData.Points)
+                {
+                    new Vector(p).render(3, Brushes.Red, g);
+                }
             }
         }
 

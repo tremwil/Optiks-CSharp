@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 
 namespace Optiks_CSharp
 {
@@ -68,7 +69,7 @@ namespace Optiks_CSharp
         {
             var tx = (float)x;
             var ty = (float)y;
-            g.FillEllipse(b, tx - w, ty - w, 2 * w, 2 * 2);
+            g.FillEllipse(b, tx - w, ty - w, 2 * w, 2 * w);
         }
 
         public static Vector operator -(Vector self)
@@ -101,6 +102,14 @@ namespace Optiks_CSharp
             return new Vector(A.X * B, A.Y * B);
         }
 
+        public static Vector operator *(Matrix A, Vector B)
+        {
+            return new Vector(
+                B.X * A.Elements[0] + B.X * A.Elements[1] + A.Elements[4],
+                B.Y * A.Elements[2] + B.Y * A.Elements[3] + A.Elements[5]
+            );
+        }
+
         public static Vector cross(Vector A, int B)
         {
             return new Vector(B * A.Y, -B * A.X);
@@ -129,6 +138,16 @@ namespace Optiks_CSharp
         public static implicit operator PointF(Vector A)
         {
             return new PointF((float)A.X, (float)A.Y);
+        }
+
+        public static explicit operator Size(Vector A)
+        {
+            return new Size((int)A.X, (int)A.Y);
+        }
+
+        public static implicit operator SizeF(Vector A)
+        {
+            return new SizeF((float)A.X, (float)A.Y);
         }
 
         public override string ToString()

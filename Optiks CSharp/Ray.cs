@@ -91,7 +91,7 @@ namespace Optiks_CSharp
 
         public RayCollisionInfo curveIntersect(Line curve)
         {
-            var delta = start - curve.focalPoint;
+            var delta = start - curve.center;
             var deltaLenSqr = delta.lenSqr();
 
             var rootSqr = Math.Pow(udir * delta, 2) - deltaLenSqr + Math.Pow(curve.radius, 2); 
@@ -177,7 +177,7 @@ namespace Optiks_CSharp
             if (!collision)
             {
                 // Make ray endpoint dynamic so you can never reach it
-                var sL = new PointF[] { start }; transform.TransformPoints(sL); var nstart = sL[0];
+                var nstart = transform * start;
                 Vector offset = new Vector(nstart) - start;
                 double translate = Math.Abs(udir * offset);
 

@@ -29,7 +29,7 @@ namespace Optiks_CSharp
         public double startAngle;
         public double sweepAngle;
 
-        public Vector focalPoint;
+        public Vector center;
 
         public abstract Vector norm(Vector contactPoint);
     }
@@ -68,19 +68,18 @@ namespace Optiks_CSharp
             this.arcHeight = Math.Abs(signedHeight);
             this.arcWidth = tangent.len();
             this.radius = Math.Pow(arcWidth, 2) / (8 * arcHeight) + arcHeight / 2;
-            this.focalPoint = this.start + tangent / 2 + (radius - arcHeight) * -pointCW * normal;
+            this.center = this.start + tangent / 2 + (radius - arcHeight) * -pointCW * normal;
 
-            var delta = this.focalPoint - this.start;
+            var delta = this.center - this.start;
             this.startAngle = 180 - MathExt.DEGREES * Math.Atan2(-delta.y, delta.x);
 
-            delta = this.focalPoint - this.end;
+            delta = this.center - this.end;
             var endAngle = 180 - MathExt.DEGREES * Math.Atan2(-delta.y, delta.x);
 
             this.sweepAngle = endAngle - startAngle;
+            var testVec = radius * ((sweepAngle > 0) ? normal : -normal);
 
-            if ((radius < arcHeight && Math.Abs(sweepAngle) < 180) ||
-                (radius > arcHeight && Math.Abs(sweepAngle) > 180) ||
-                (MathExt.diff(sweepAngle, 180) < MathExt.EPSILON && pointCW > 0))
+            if (normal * pointCW * testVec > 0)
             {
                 this.sweepAngle = -Math.Sign(sweepAngle) * (360 - Math.Abs(sweepAngle));
             }
@@ -88,7 +87,7 @@ namespace Optiks_CSharp
 
         public override Vector norm(Vector contactPoint)
         {
-            var delta = contactPoint - focalPoint;
+            var delta = contactPoint - center;
             return delta.unit() * pointCW;
         }
     }
