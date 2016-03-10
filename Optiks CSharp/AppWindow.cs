@@ -36,6 +36,7 @@ namespace Optiks_CSharp
 
         Body selectedBody = Body.NONE;
         LightRay selectedLightRay = LightRay.NONE;
+        UI.PointRotor lightRayRotor;
 
         ViewModes viewMode;
 
@@ -70,7 +71,7 @@ namespace Optiks_CSharp
                 new Body(
                     new List<Line>
                     {
-                        new Curve(new Vector(0, 0), new Vector(1, 1), 0.1),
+                        new Curve(new Vector(0, 0), new Vector(1, 1), 0.2),
                         new Segment(new Vector(1, 1), new Vector(0, 1)),
                         new Segment(new Vector(0, 1), new Vector(0, 0))
                     },
@@ -210,12 +211,11 @@ namespace Optiks_CSharp
 
             Pen axisPen = new Pen(Color.FromArgb(128, 100, 100, 100), 1);
 
-            debugText.Text = scene.bodies[0].segments[0].pointCW.ToString();
-
-
             //Graph section
+            e.Graphics.SmoothingMode = SmoothingMode.None;
             e.Graphics.DrawLine(axisPen, 0, viewTransform.OffsetY, canvas.Width, viewTransform.OffsetY);
             e.Graphics.DrawLine(axisPen, viewTransform.OffsetX, 0, viewTransform.OffsetX, canvas.Height);
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
             //Selected hitbox & body
             if (selectedBody)
@@ -247,6 +247,7 @@ namespace Optiks_CSharp
             if (selectedLightRay)
             {
                 selectedLightRay.rays[0].render(selectedLightRay.pen, e.Graphics, viewTransform);
+                lightRayRotor.display(canvas.PointToClient(Cursor.Position), e.Graphics, viewTransform);
             }
 
             //Sides chaange color when you are focused
@@ -284,12 +285,21 @@ namespace Optiks_CSharp
             {
                 dragPos = new Point(-1, -1);
             }
+
+            if (e.Button.HasFlag(MouseButtons.Left))
+            {
+                if (selectedLightRay)
+                {
+                    var locks = scene.bodies[0].gpath.PathPoints.Select(x => new Vector(x)).ToArray();
+
+                    lightRayRotor.setUnitVector(ref selectedLightRay.rays[0].udir, new Vector(e.Location), viewTransform, locks, 5);
+                    canvas.Invalidate();
+                }
+            }
         }
 
         private void canvas_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
         {
-            debugText.Text = e.KeyData.ToString();
-
             var mousePos = canvas.PointToClient(Cursor.Position);
 
             // Use fake events, because lazyness is a quality
@@ -328,14 +338,14 @@ namespace Optiks_CSharp
 
             selectedLightRay = LightRay.NONE;
             selectedBody = Body.NONE;
+            Vector scaledMousePos = viewTransform.inverseTransform(new Vector(e.Location));
 
             foreach (LightRay r in scene.lightRays)
             {
-                var points = new PointF[] { r.rays[0].start };
-                viewTransform.TransformPoints(points);
 
-                if ((new Vector(e.X, e.Y) - new Vector(points[0])).lenSqr() <= 25) {
+                if ((scaledMousePos - r.rays[0].start).len() * viewTransform.Elements[0] <= 7) {
                     selectedLightRay = r;
+                    lightRayRotor = new UI.PointRotor(selectedLightRay.rays[0].start);
                     canvas.Invalidate();
                     return;
                 }
@@ -349,7 +359,7 @@ namespace Optiks_CSharp
                 GraphicsPath gPath = (GraphicsPath)b.gpath.Clone();
                 gPath.Transform(viewTransform);
 
-                if (gPath.IsVisible(e.Location))
+                if (gPath.IsVisible(e.X, e.Y))
                 {
                     selectedBody = b;
                     canvas.Invalidate();

@@ -8,9 +8,43 @@ using System.Drawing.Drawing2D;
 
 namespace Optiks_CSharp
 {
+    static class MatrixExtensions
+    {
+        /// <summary>
+        /// Inverse-tranform a vector without fully inverting the matrix.
+        /// </summary>
+        /// <param name="t"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        public static Vector inverseTransform(this Matrix t, Vector p)
+        {
+            /* 
+            Algebraic solving:
+                P' = (a*x + b*x + e, c*y + d*y + f)
+                x' = a*x + b*x + e
+                x' = (a + b)*x + e
+                x' - e = (a + b)*x
+                (x' - e) / (a + b) = x
+            */
+
+            var a = t.Elements[0];
+            var b = t.Elements[1];
+            var c = t.Elements[2];
+            var d = t.Elements[3];
+            var e = t.Elements[4];
+            var f = t.Elements[5];
+
+            if (a + b == 0 || c + d == 0)
+            {
+                throw new DivideByZeroException();
+            }
+
+            return new Vector((p.x - e) / (a + b), (p.y - f) / (c + d));
+        }
+    }
+
     namespace UI
     {
-
         enum MovablePointTypes
         {
             Translator,
@@ -26,6 +60,7 @@ namespace Optiks_CSharp
 
             public abstract void applyMovement(ref Vector point, Vector mousePos, Matrix t, Vector[] locks, double lockThreshold);
             public abstract void display(Vector point, Graphics g, Matrix t);
+            public abstract void setUnitVector(ref Vector unitp, Vector mousePos, Matrix t, Vector[] locks, double lockThreshold);
         }
 
         class PointTranslator : MovablePoint
@@ -38,10 +73,7 @@ namespace Optiks_CSharp
 
             public override void applyMovement(ref Vector point, Vector mousePos, Matrix t, Vector[] locks, double lockThreshold)
             {
-                t = t.Clone();
-                t.Invert();
-
-                Vector scaledMousePos = t * mousePos;
+                Vector scaledMousePos = t.inverseTransform(mousePos);
 
                 Vector closest = new Vector(0, 0);
                 double smallestDist = double.PositiveInfinity;
@@ -65,6 +97,11 @@ namespace Optiks_CSharp
             {
                 
             }
+
+            public override void setUnitVector(ref Vector unitp, Vector mousePos, Matrix t, Vector[] locks, double lockThreshold)
+            {
+
+            }
         }
 
         class PointRotor : MovablePoint
@@ -77,15 +114,50 @@ namespace Optiks_CSharp
 
             public override void applyMovement(ref Vector point, Vector mousePos, Matrix t, Vector[] locks, double lockThreshold)
             {
-                t = t.Clone();
-                t.Invert();
+                var scaledMousePos = t.inverseTransform(mousePos);
+
+                Vector closest = new Vector(0, 0);
+                double smallestDist = double.PositiveInfinity;
+
+                foreach (Vector clip in locks)
+                {
+                    var dist = (scaledMousePos - clip).lenSqr();
+                    if (dist < smallestDist) { smallestDist = dist; closest = clip; }
+                }
+
+                if (smallestDist * t.Elements[0] <= 25)
+                {
+                    scaledMousePos = closest;
+                }
+
+                point = rotationCenter + point.lenSqr() * (scaledMousePos - rotationCenter).unit();
+            }
+
+            public override void setUnitVector(ref Vector unitp, Vector mousePos, Matrix t, Vector[] locks, double lockThreshold)
+            {
+                var scaledMousePos = t.inverseTransform(mousePos);
+
+                Vector closest = new Vector(0, 0);
+                double smallestDist = double.PositiveInfinity;
+
+                foreach (Vector clip in locks)
+                {
+                    var dist = (scaledMousePos - clip).lenSqr();
+                    if (dist < smallestDist) { smallestDist = dist; closest = clip; }
+                }
+
+                if (smallestDist * t.Elements[0] * t.Elements[0] <= 25)
+                {
+                    scaledMousePos = closest;
+                }
+
+                unitp = (scaledMousePos - rotationCenter).unit();
             }
 
             public override void display(Vector point, Graphics g, Matrix t)
             {
-                var tPoint = t * point;
                 var tCenter = t * rotationCenter;
-                var radius = (tPoint - tCenter).len();
+                var radius = (point - tCenter).len();
                 var radiusV = new Vector(radius, radius);
 
                 g.DrawEllipse(Pens.OrangeRed, new RectangleF(tCenter - radiusV, radiusV * 2));

@@ -150,6 +150,16 @@ namespace Optiks_CSharp
             return new SizeF((float)A.X, (float)A.Y);
         }
 
+        public static implicit operator Vector(Point A)
+        {
+            return new Vector(A);
+        }
+
+        public static implicit operator Vector(PointF A)
+        {
+            return new Vector(A);
+        }
+
         public override string ToString()
         {
             return "{X: " + X.ToString() + ", Y: " + Y.ToString() + "}";
