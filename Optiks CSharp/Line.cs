@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Drawing.Drawing2D;
 
 namespace Optiks_CSharp
 {
     enum LineTypes
     {
         Straight,
-        Curved
+        CircleArc,
+        Parabolic
     }
 
     abstract class Line
@@ -21,15 +23,17 @@ namespace Optiks_CSharp
         public Vector tangent;
         public Vector normal;
 
-        public double arcHeight;
-        public double arcWidth;
+        public double height;
+        public double width;
         public double radius;
         public double pointCW;
-
         public double startAngle;
         public double sweepAngle;
-
         public Vector center;
+
+        public Vector focalPoint;
+        public Vector vertex;
+        public Vector bezierHandle;
 
         public abstract Vector norm(Vector contactPoint);
     }
@@ -52,11 +56,11 @@ namespace Optiks_CSharp
         }
     }
 
-    class Curve: Line
+    class CircleArc: Line
     {
-        public Curve(Vector start, Vector end, double signedHeight)
+        public CircleArc(Vector start, Vector end, double signedHeight)
         {
-            this.type = LineTypes.Curved;
+            this.type = LineTypes.CircleArc;
 
             this.start = start;
             this.end = end;
@@ -65,11 +69,12 @@ namespace Optiks_CSharp
 
             this.pointCW = Math.Sign(signedHeight);
 
-            this.arcHeight = Math.Abs(signedHeight);
-            this.arcWidth = tangent.len();
-            this.radius = Math.Pow(arcWidth, 2) / (8 * arcHeight) + arcHeight / 2;
-            this.center = this.start + tangent / 2 + (radius - arcHeight) * -pointCW * normal;
+            this.height = Math.Abs(signedHeight);
+            this.width = tangent.len();
+            this.radius = Math.Pow(width, 2) / (8 * height) + height / 2;
+            this.center = this.start + tangent / 2 + (radius - height) * -pointCW * normal;
 
+            /* Angle dipshit starts here - MIND = BLOWN ALERT */
             var delta = this.center - this.start;
             this.startAngle = 180 - MathExt.DEGREES * Math.Atan2(-delta.y, delta.x);
 
@@ -89,6 +94,34 @@ namespace Optiks_CSharp
         {
             var delta = contactPoint - center;
             return delta.unit() * pointCW;
+        }
+    }
+
+    class ParabolicBezier : Line
+    {
+        public ParabolicBezier(Vector start, Vector end, double signedHeight)
+        {
+            type = LineTypes.Parabolic;
+
+            this.start = start;
+            this.end = end;
+            tangent = end - start;
+            normal = tangent.normal().unit();
+
+            pointCW = Math.Sign(signedHeight);
+            height = Math.Abs(signedHeight);
+            width = tangent.len();
+
+            vertex = start + tangent / 2 + normal * signedHeight;
+            focalPoint = vertex + Math.Pow(width * 0.5, 2) / (-4 * signedHeight) * normal;
+            bezierHandle = 2 * vertex - start * 0.5 - end * 0.5;
+        }
+
+        public override Vector norm(Vector contactPoint)
+        {
+            Vector I = -pointCW * normal;
+            Vector R = (focalPoint - contactPoint).unit();
+            return (I + (R - I) * 0.5).unit();
         }
     }
 }

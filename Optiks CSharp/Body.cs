@@ -67,12 +67,19 @@ namespace Optiks_CSharp
                 {
                     gpath.AddLine(l.start, l.end);
                 }
-
-                else
+                if (l.type == LineTypes.CircleArc)
                 {
                     var v = l.center - new Vector(l.radius, l.radius);
                     var rect = new RectangleF(v, new SizeF((float)l.radius * 2, (float)l.radius * 2));
                     gpath.AddArc(rect, (float)l.startAngle, (float)l.sweepAngle);
+                }
+                if (l.type == LineTypes.Parabolic)
+                {
+                    // Convert quad Bezier to cubic because GDI+ doesn't support quad
+                    Vector CP1 = l.start + 2d / 3 * (l.bezierHandle - l.start);
+                    Vector CP2 = l.end + 2d / 3 * (l.bezierHandle - l.end);
+
+                    gpath.AddBezier(l.start, CP1, CP2, l.end);
                 }
             }
 

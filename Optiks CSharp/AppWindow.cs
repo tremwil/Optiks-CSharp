@@ -37,6 +37,7 @@ namespace Optiks_CSharp
         Body selectedBody = Body.NONE;
         LightRay selectedLightRay = LightRay.NONE;
         UI.PointRotor lightRayRotor;
+        bool movingLray = false;
 
         ViewModes viewMode;
 
@@ -57,6 +58,8 @@ namespace Optiks_CSharp
         {
             this.canvas.MouseWheel += canvas_MouseWheel;
             this.canvas.MouseMove += canvas_MouseMove;
+            this.canvas.MouseDown += canvas_MouseDown;
+            this.canvas.MouseUp += canvas_MouseUp;
             this.canvas.PreviewKeyDown += canvas_PreviewKeyDown;
 
             viewMode = ViewModes.Edit;
@@ -71,8 +74,8 @@ namespace Optiks_CSharp
                 new Body(
                     new List<Line>
                     {
-                        new Curve(new Vector(0, 0), new Vector(1, 1), 0.2),
-                        new Segment(new Vector(1, 1), new Vector(0, 1)),
+                        new CircleArc(new Vector(0, 0), new Vector(1, 1), -0.2),
+                        new ParabolicBezier(new Vector(1, 1), new Vector(0, 1), -0.2),
                         new Segment(new Vector(0, 1), new Vector(0, 0))
                     },
                     2.3,
@@ -89,6 +92,8 @@ namespace Optiks_CSharp
                     new Pen(Color.Yellow, 2)
                 )
             });
+
+            debugText.Text = scene.bodies[0].segments[1].bezierHandle.ToString();
 
             openSceneBinary = new OpenFileDialog();
             openSceneBinary.Filter = "Optiks Scene Files (*.opt)|*.opt|All Files (*.*)|*.*";
@@ -234,12 +239,18 @@ namespace Optiks_CSharp
 
                 foreach (Line l in selectedBody.segments)
                 {
-                    if (l.type == LineTypes.Straight) { continue; }
-
-                    Vector focus = l.center + l.pointCW * l.radius / 2 * l.normal;
-                    points = new PointF[] { focus };
-                    viewTransform.TransformPoints(points);
-                    new Vector(points[0]).render(3, Brushes.Green, e.Graphics);
+                    if (l.type == LineTypes.CircleArc)
+                    {
+                        Vector focus = viewTransform * (l.center + l.pointCW * l.radius / 2 * l.normal);
+                        Vector curvePt = viewTransform * (l.center + l.pointCW * l.radius * l.normal);
+                        e.Graphics.DrawLine(Pens.Orange, focus, curvePt);
+                        focus.render(3, Brushes.Orange, e.Graphics);
+                    }
+                    if (l.type == LineTypes.Parabolic)
+                    {
+                        e.Graphics.DrawLine(Pens.Green, viewTransform * l.vertex, viewTransform * l.focalPoint);
+                        (viewTransform * l.focalPoint).render(3, Brushes.Green, e.Graphics);
+                    }
                 }
             }
 
@@ -247,7 +258,7 @@ namespace Optiks_CSharp
             if (selectedLightRay)
             {
                 selectedLightRay.rays[0].render(selectedLightRay.pen, e.Graphics, viewTransform);
-                lightRayRotor.display(canvas.PointToClient(Cursor.Position), e.Graphics, viewTransform);
+                lightRayRotor.display(selectedLightRay.rays[0].udir, e.Graphics, viewTransform);
             }
 
             //Sides chaange color when you are focused
@@ -290,11 +301,40 @@ namespace Optiks_CSharp
             {
                 if (selectedLightRay)
                 {
-                    var locks = scene.bodies[0].gpath.PathPoints.Select(x => new Vector(x)).ToArray();
-
-                    lightRayRotor.setUnitVector(ref selectedLightRay.rays[0].udir, new Vector(e.Location), viewTransform, locks, 5);
+                    if ((viewTransform * selectedLightRay.rays[0].start - e.Location).lenSqr() > 25 && !movingLray)
+                    {
+                        var locks = scene.bodies[0].gpath.PathPoints.Select(x => new Vector(x)).ToArray();
+                        lightRayRotor.setUnitVector(ref selectedLightRay.rays[0].udir, new Vector(e.Location), viewTransform, locks, 5);
+                    }
+                    if (movingLray)
+                    {
+                        selectedLightRay.rays[0].start = viewTransform.inverseTransform(e.Location);
+                        lightRayRotor.rotationCenter = selectedLightRay.rays[0].start;
+                    }
                     canvas.Invalidate();
                 }
+            }
+        }
+
+        private void canvas_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button.HasFlag(MouseButtons.Left))
+            {
+                if (selectedLightRay)
+                {
+                    if ((viewTransform * selectedLightRay.rays[0].start - e.Location).lenSqr() <= 25)
+                    {
+                        movingLray = true;
+                    }
+                }
+            }
+        }
+
+        private void canvas_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button.HasFlag(MouseButtons.Left))
+            {
+                movingLray = false;
             }
         }
 

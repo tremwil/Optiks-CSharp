@@ -89,7 +89,7 @@ namespace Optiks_CSharp
             return new RayCollisionInfo(b, this.start + (b * this.udir), seg.normal, seg);
         }
 
-        public RayCollisionInfo curveIntersect(Line curve)
+        public RayCollisionInfo circleArcIntersect(Line curve)
         {
             var delta = start - curve.center;
             var deltaLenSqr = delta.lenSqr();
@@ -123,6 +123,13 @@ namespace Optiks_CSharp
             return RayCollisionInfo.EMPTY;
         }
 
+        public RayCollisionInfo parabolaIntersect(Line para)
+        {
+            
+
+            return new RayCollisionInfo();
+        }
+
         public RayCollisionInfo bodyListIntersect(List<Body> bodies)
         {
             collision = RayCollisionInfo.EMPTY; // Also store result in object
@@ -130,8 +137,21 @@ namespace Optiks_CSharp
             {
                 foreach (Line line in body.segments)
                 {
-                    RayCollisionInfo r = (line.type == LineTypes.Straight) ? 
-                        this.segmentIntersect(line) : this.curveIntersect(line);
+                    var r = RayCollisionInfo.EMPTY;
+                    switch (line.type)
+                    {
+                        case LineTypes.Straight:
+                            r = segmentIntersect(line);
+                            break;
+
+                        case LineTypes.CircleArc:
+                            r = circleArcIntersect(line);
+                            break;
+
+                        case LineTypes.Parabolic:
+                            r = parabolaIntersect(line);
+                            break;
+                    }  
                     
                     if (!r) { continue; }
 

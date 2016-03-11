@@ -154,13 +154,15 @@ namespace Optiks_CSharp
                 unitp = (scaledMousePos - rotationCenter).unit();
             }
 
-            public override void display(Vector point, Graphics g, Matrix t)
+            public override void display(Vector upoint, Graphics g, Matrix t)
             {
                 var tCenter = t * rotationCenter;
-                var radius = (point - tCenter).len();
-                var radiusV = new Vector(radius, radius);
+                var angle = (float)(180 - MathExt.DEGREES * Math.Atan2(upoint.y, -upoint.x));
+                var radiusV = new Vector(80, 80);
 
-                g.DrawEllipse(Pens.OrangeRed, new RectangleF(tCenter - radiusV, radiusV * 2));
+                g.DrawArc(Pens.OrangeRed, new RectangleF(tCenter - radiusV, radiusV * 2), angle, 360 - angle);
+                g.DrawPie(Pens.LawnGreen, new RectangleF(tCenter - radiusV, radiusV * 2), 0, angle);
+                g.DrawString(Math.Round(angle, 2).ToString(), SystemFonts.DefaultFont, Brushes.Black, tCenter + new Vector(-5, 8));
             }
         }
     }

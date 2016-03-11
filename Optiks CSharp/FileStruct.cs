@@ -66,7 +66,7 @@ namespace Optiks_CSharp
                         else
                         {
                             segs.Add(
-                                new Curve(
+                                new CircleArc(
                                     new Vector(
                                         BitConverter.ToDouble(bytes, index + 01),
                                         BitConverter.ToDouble(bytes, index + 09)
@@ -147,9 +147,9 @@ namespace Optiks_CSharp
                     bytes.AddRange(BitConverter.GetBytes(l.end.x));
                     bytes.AddRange(BitConverter.GetBytes(l.end.y));
 
-                    if (l.type == LineTypes.Curved)
+                    if (l.type == LineTypes.CircleArc)
                     {
-                        bytes.AddRange(BitConverter.GetBytes(l.arcHeight * l.pointCW));
+                        bytes.AddRange(BitConverter.GetBytes(l.height * l.pointCW));
                     }
                 }
                 bytes.Add(0xff);
