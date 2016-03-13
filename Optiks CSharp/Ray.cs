@@ -48,7 +48,6 @@ namespace Optiks_CSharp
         public Vector udir;
         public Vector unorm;
         public RayCollisionInfo collision;
-        public double A, B, C;
 
         public Ray(Vector start, Vector udir)
         {
@@ -56,11 +55,6 @@ namespace Optiks_CSharp
             this.udir = udir;
             this.unorm = udir.normal();
             this.collision = RayCollisionInfo.EMPTY;
-
-            Vector end = start + udir;
-            A = start.y - end.y;
-            B = end.x - start.x;
-            C = start.x * end.y - end.x * start.y;
         }
 
         public RayCollisionInfo segmentIntersect(Line seg)
@@ -129,27 +123,46 @@ namespace Optiks_CSharp
             return RayCollisionInfo.EMPTY;
         }
 
+        public double[] getBezierY(Vector[] points)
+        {
+            var tx = start.x;
+            var ty = start.y;
+            var a = -Math.Atan2(udir.y, udir.x);
+            var cosa = Math.Cos(a);
+            var sina = Math.Sin(a);
+
+            return points.Select(v => (v.x - tx) * sina + (v.y - ty) * cosa).ToArray();
+        }
+
         public RayCollisionInfo parabolaIntersect(Line para)
         {
-            var bx = MathExt.bezierCoeffs(para.start.x, para.bezierHandle.x, para.end.x);
-            var by = MathExt.bezierCoeffs(para.start.y, para.bezierHandle.y, para.end.y);
+            var points = getBezierY(new Vector[]
+                { para.start, para.bezierHandle, para.end }
+            );
 
-            var a = A * bx[0] + B * by[0];           // t^2
+            var a = points[0];
+            var b = points[1];
+            var c = points[2];
+            var d = a - 2 * b + c;
+            double[] dists;
 
-            if (a == 0) { return RayCollisionInfo.EMPTY; }
+            if (Math.Abs(d) >= MathExt.EPSILON)
+            {
+                var sqr = b * b - a * c;
+                if (sqr <= 0) { return RayCollisionInfo.EMPTY; }
 
-            var b = (A * bx[1] + B * by[1]) / a;     // t
-            var c = (A * bx[2] + B * by[2] + C) / a; // 1
-
-            var sqr = b * b - 4 * c;
-
-            if (sqr < 0)
-            { // Complex roots, no intersect
+                var sqrt = Math.Sqrt(sqr);
+                var m = a - b;
+                dists = new double[] { (m + sqrt) / d, (m - sqrt) / d };
+            }
+            else if (a != b)
+            {
+                dists = new double[] { a / (2 * (a - b)) };
+            }
+            else
+            {
                 return RayCollisionInfo.EMPTY;
             }
-
-            var sqrt = Math.Sqrt(sqr); // Perform sqrt
-            var dists = new double[] { (-b + sqrt) / 2, (-b - sqrt) / 2 };
 
             Vector best = new Vector(0, 0);
             double bestT = double.PositiveInfinity;
@@ -160,7 +173,7 @@ namespace Optiks_CSharp
                 if (t < MathExt.EPSILON || t > 1 - MathExt.EPSILON) { continue; }
 
                 // Compute actual intersection point & distance
-                Vector cp = new Vector(bx[0]*t*t + bx[1]*t + bx[2], by[0]*t*t + by[1]*t + by[2]);
+                Vector cp = MathExt.evalBezier(para, t);
                 var lineT = udir * (cp - start);
 
                 // point on other side of the ray

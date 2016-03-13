@@ -87,7 +87,7 @@ namespace Optiks_CSharp
             }, new List<LightRay>
             {
                 new LightRay(
-                    new Ray(new Vector(0.5, 2), Vector.fromAngle(-Math.PI/2)),
+                    new Ray(new Vector(0.3, 2), Vector.fromAngle(-Math.PI/2)),
                     30,
                     new Pen(Color.Yellow, 2)
                 )
@@ -268,11 +268,12 @@ namespace Optiks_CSharp
             {
                 selectedLightRay.rays[0].render(selectedLightRay.pen, e.Graphics, viewTransform);
                 lightRayRotor.display(selectedLightRay.rays[0].udir, e.Graphics, viewTransform);
-
-                debugText.Text = selectedLightRay.rays[0].A.ToString() + ", " +
-                    selectedLightRay.rays[0].B.ToString() + ", " +
-                    selectedLightRay.rays[0].C.ToString();
             }
+
+            e.Graphics.DrawLine(Pens.Red,
+            viewTransform * (scene.lightRays[0].rays[0].collision.contactPoint),
+            viewTransform * (scene.lightRays[0].rays[0].collision.contactPoint +
+            scene.lightRays[0].rays[0].collision.normal));
 
             //Sides change color when you are focused
             Color col = canvas.Focused ? Color.Black : Color.LightGray;

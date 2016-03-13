@@ -9,9 +9,9 @@ namespace Optiks_CSharp
 {
     struct MathExt
     {
-        public static readonly double EPSILON = 10e-9;
+        public static readonly double EPSILON = 10e-12;
 
-        public static readonly double TAU = 2*Math.PI;
+        public static readonly double TAU = 2 * Math.PI;
         /// <summary>
         /// Converts radians to degrees.
         /// </summary>
@@ -36,17 +36,16 @@ namespace Optiks_CSharp
         public static double[] quad(double a, double b, double c)
         {
             var sqrt = Math.Sqrt(b * b - 4 * a * c);
-            return new double[] { (-b + sqrt) / (2* a), (-b - sqrt) / (2* a) };
+            return new double[] { (-b + sqrt) / (2 * a), (-b - sqrt) / (2 * a) };
         }
 
-        public static double[] bezierCoeffs(double P0, double P1, double P2)
+        internal static Vector evalBezier(Line para, double t)
         {
-            return new double[]
-            {
-                P0 - 2*P1 + P2,
-                2*P1 - 2*P0,
-                P0
-            };
+            var tm1 = 1 - t;
+            return
+                tm1 * tm1 * para.start +
+                2 * tm1 * t * para.bezierHandle +
+                t * t * para.end;
         }
     }
 }
