@@ -62,7 +62,7 @@ namespace Optiks_CSharp
             this.canvas.MouseUp += canvas_MouseUp;
             this.canvas.PreviewKeyDown += canvas_PreviewKeyDown;
 
-            viewMode = ViewModes.Edit;
+            setViewMode(ViewModes.RunSim);
 
             defaultView = new Matrix();
             defaultView.Scale(10, 10, MatrixOrder.Append);
@@ -87,7 +87,7 @@ namespace Optiks_CSharp
             }, new List<LightRay>
             {
                 new LightRay(
-                    new Ray(new Vector(1, 0.5), Vector.fromAngle(Math.PI)),
+                    new Ray(new Vector(0.5, 2), Vector.fromAngle(-Math.PI/2)),
                     30,
                     new Pen(Color.Yellow, 2)
                 )
@@ -105,7 +105,7 @@ namespace Optiks_CSharp
             saveSceneBinary.Filter = "Optiks Scene Files (*.opt)|*.opt|All Files (*.*)|*.*";
             saveSceneBinary.DefaultExt = "opt";
 
-
+            scene.physicsTick();
             //askOpenSceneFile();
         }
 
@@ -132,7 +132,7 @@ namespace Optiks_CSharp
                 return;
             }
 
-            viewTransform = new Matrix();
+            viewTransform = defaultView;
             lastSave = "";
             scene = new Scene(new List<Body>(), new List<LightRay>());
             this.canvas.Invalidate();
@@ -207,6 +207,15 @@ namespace Optiks_CSharp
             canvas.Invalidate();
         }
 
+        private void setViewMode(ViewModes v)
+        {
+            viewMode = v;
+            selectedBody = Body.NONE;
+            selectedLightRay = LightRay.NONE;
+
+            canvas.Invalidate();
+        }
+
         private void canvas_Paint(object sender, PaintEventArgs e)
         {
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
@@ -259,9 +268,13 @@ namespace Optiks_CSharp
             {
                 selectedLightRay.rays[0].render(selectedLightRay.pen, e.Graphics, viewTransform);
                 lightRayRotor.display(selectedLightRay.rays[0].udir, e.Graphics, viewTransform);
+
+                debugText.Text = selectedLightRay.rays[0].A.ToString() + ", " +
+                    selectedLightRay.rays[0].B.ToString() + ", " +
+                    selectedLightRay.rays[0].C.ToString();
             }
 
-            //Sides chaange color when you are focused
+            //Sides change color when you are focused
             Color col = canvas.Focused ? Color.Black : Color.LightGray;
             ControlPaint.DrawBorder(e.Graphics, canvas.ClientRectangle, col, ButtonBorderStyle.Solid);
         }

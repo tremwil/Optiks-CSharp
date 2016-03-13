@@ -53,7 +53,7 @@
       <DependentUpon>AppWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="Body.cs" />
-    <Compile Include="Constants.cs" />
+    <Compile Include="MathExtensions.cs" />
     <Compile Include="FileStruct.cs" />
     <Compile Include="LightRay.cs" />
     <Compile Include="Program.cs" />

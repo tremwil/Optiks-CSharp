@@ -48,6 +48,7 @@ namespace Optiks_CSharp
         public Vector udir;
         public Vector unorm;
         public RayCollisionInfo collision;
+        public double A, B, C;
 
         public Ray(Vector start, Vector udir)
         {
@@ -55,6 +56,11 @@ namespace Optiks_CSharp
             this.udir = udir;
             this.unorm = udir.normal();
             this.collision = RayCollisionInfo.EMPTY;
+
+            Vector end = start + udir;
+            A = start.y - end.y;
+            B = end.x - start.x;
+            C = start.x * end.y - end.x * start.y;
         }
 
         public RayCollisionInfo segmentIntersect(Line seg)
@@ -125,9 +131,54 @@ namespace Optiks_CSharp
 
         public RayCollisionInfo parabolaIntersect(Line para)
         {
-            
+            var bx = MathExt.bezierCoeffs(para.start.x, para.bezierHandle.x, para.end.x);
+            var by = MathExt.bezierCoeffs(para.start.y, para.bezierHandle.y, para.end.y);
 
-            return new RayCollisionInfo();
+            var a = A * bx[0] + B * by[0];           // t^2
+
+            if (a == 0) { return RayCollisionInfo.EMPTY; }
+
+            var b = (A * bx[1] + B * by[1]) / a;     // t
+            var c = (A * bx[2] + B * by[2] + C) / a; // 1
+
+            var sqr = b * b - 4 * c;
+
+            if (sqr < 0)
+            { // Complex roots, no intersect
+                return RayCollisionInfo.EMPTY;
+            }
+
+            var sqrt = Math.Sqrt(sqr); // Perform sqrt
+            var dists = new double[] { (-b + sqrt) / 2, (-b - sqrt) / 2 };
+
+            Vector best = new Vector(0, 0);
+            double bestT = double.PositiveInfinity;
+
+            foreach (double t in dists)
+            {
+                // point not on curve
+                if (t < MathExt.EPSILON || t > 1 - MathExt.EPSILON) { continue; }
+
+                // Compute actual intersection point & distance
+                Vector cp = new Vector(bx[0]*t*t + bx[1]*t + bx[2], by[0]*t*t + by[1]*t + by[2]);
+                var lineT = udir * (cp - start);
+
+                // point on other side of the ray
+                if (lineT < 0) { continue; }
+
+                if (lineT < bestT)
+                {
+                    bestT = lineT;
+                    best = cp;
+                }
+            }
+
+            if (bestT != double.PositiveInfinity)
+            {
+                return new RayCollisionInfo(bestT, best, para.norm(best), para);
+            }
+
+            return RayCollisionInfo.EMPTY;
         }
 
         public RayCollisionInfo bodyListIntersect(List<Body> bodies)
