@@ -127,11 +127,10 @@ namespace Optiks_CSharp
         {
             var tx = start.x;
             var ty = start.y;
-            var a = -Math.Atan2(udir.y, udir.x);
-            var cosa = Math.Cos(a);
-            var sina = Math.Sin(a);
+            var sin = -udir.y;
+            var cos = udir.x;
 
-            return points.Select(v => (v.x - tx) * sina + (v.y - ty) * cosa).ToArray();
+            return points.Select(v => (v.x - tx) * sin + (v.y - ty) * cos).ToArray();
         }
 
         public RayCollisionInfo parabolaIntersect(Line para)

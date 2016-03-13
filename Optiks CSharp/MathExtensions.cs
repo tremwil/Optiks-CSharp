@@ -7,7 +7,7 @@ using System.Reflection.Emit;
 
 namespace Optiks_CSharp
 {
-    struct MathExt
+    static class MathExt
     {
         public static readonly double EPSILON = 10e-12;
 
@@ -46,6 +46,21 @@ namespace Optiks_CSharp
                 tm1 * tm1 * para.start +
                 2 * tm1 * t * para.bezierHandle +
                 t * t * para.end;
+        }
+
+        public static Vector cross(this Vector A, double B)
+        {
+            return new Vector(B * A.y, -B * A.x);
+        }
+
+        public static Vector cross(this double A, Vector B)
+        {
+            return new Vector(-A * B.y, A * B.x);
+        }
+
+        public static double cross(this Vector A, Vector B)
+        {
+            return A.x * B.y - A.y * B.x;
         }
     }
 }

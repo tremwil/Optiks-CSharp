@@ -110,12 +110,12 @@ namespace Optiks_CSharp
             );
         }
 
-        public static Vector cross(Vector A, int B)
+        public static Vector cross(Vector A, double B)
         {
             return new Vector(B * A.Y, -B * A.X);
         }
 
-        public static Vector cross(int A, Vector B)
+        public static Vector cross(double A, Vector B)
         {
             return new Vector(-A * B.Y, A * B.X);
         }
