@@ -17,8 +17,10 @@ namespace Optiks_CSharp
         Matrix viewTransform = new Matrix();
         Matrix defaultView = new Matrix();
         Point dragPos;
+
         bool displayAxes = true;
-        int maxAxes = 20;
+        int maxGridSize = 150;
+        int minGridSize = 15;
 
         Body selectedBody = Body.NONE;
         LightRay selectedLightRay = LightRay.NONE;
@@ -275,9 +277,33 @@ namespace Optiks_CSharp
             {
                 e.Graphics.SmoothingMode = SmoothingMode.None;
 
-                e.Graphics.DrawLine(axisPen, 0, viewTransform.OffsetY, canvas.Width, viewTransform.OffsetY);
-                e.Graphics.DrawLine(axisPen, viewTransform.OffsetX, 0, viewTransform.OffsetX, canvas.Height);
+                var zoom = viewTransform.Elements[0];
+                var gridSize = zoom;
 
+                while (gridSize > maxGridSize)
+                {
+                    gridSize /= 10;
+                }
+                while (gridSize < minGridSize)
+                {
+                    gridSize *= 10;
+                }
+
+                var dx = viewTransform.Elements[4];
+                var dy = viewTransform.Elements[5];
+                var w = e.Graphics.ClipBounds.Width;
+                var h = e.Graphics.ClipBounds.Height;
+
+                for (float i = dx % gridSize; i < w; i += gridSize)
+                {
+                    Pen p = (i - dx < 1 && i - dx > -1) ? new Pen(Color.Black, 2) : new Pen(Color.FromArgb(160, Color.Gray));
+                    e.Graphics.DrawLine(p, i, 0, i, h);
+                }
+                for (float i = dy % gridSize; i < h; i += gridSize)
+                {
+                    Pen p = (i - dy < 1 && i - dy > -1) ? new Pen(Color.Black, 2) : new Pen(Color.FromArgb(160, Color.Gray));
+                    e.Graphics.DrawLine(new Pen(Color.FromArgb(160, Color.Gray)), 0, i, w, i);
+                }
 
                 e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             }
