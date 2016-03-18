@@ -38,23 +38,21 @@ namespace Optiks_CSharp
             return !r.empty;
         }
 
-        public void render(Graphics g, Matrix t, ViewModes mode)
+        public void render(Graphics g, Matrix t)
         {
-            if (mode == ViewModes.RunSim || mode == ViewModes.GetInfo)
+            if (UIConstants.viewMode != ViewModes.Edit)
             {
                 int e = (stopped) ? rays.Count : rays.Count - 1;
                 for (int i = 0; i < e; i++)
                 {
+                    (t * rays[0].start).render(4, Brushes.Red, g);
                     rays[i].render(pen, g, t);
                 }
             }
 
-            if (mode == ViewModes.Edit)
+            else
             {
-                var points = new PointF[] { rays[0].start };
-                t.TransformPoints(points);
-
-                var v = new Vector(points[0]);
+                var v = (t * rays[0].start);
                 v.render(4, Brushes.Red, g);
                 g.DrawLine(pen, v, (v + rays[0].udir * 60));
             }
@@ -64,7 +62,7 @@ namespace Optiks_CSharp
         {
             stopped = false;
             Ray s = rays[0];
-            s.collision = RayCollisionInfo.EMPTY;
+            s.collision = RayCollisionInfo.NONE;
             rays.Clear();
             rays.Add(s);
         }
@@ -106,7 +104,7 @@ namespace Optiks_CSharp
 
             if (col.body.type == BodyTypes.Reflecting)
             {
-                if (rays.Count == rays.Capacity)
+                if (rays.Count == maxRays)
                 {
                     stopped = true;
                     return;
@@ -150,7 +148,7 @@ namespace Optiks_CSharp
                 ray2 = new Ray(col.contactPoint, refract);
             }
 
-            if (rays.Count == rays.Capacity)
+            if (rays.Count == maxRays)
             {
                 stopped = true;
                 return;

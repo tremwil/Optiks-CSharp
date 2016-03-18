@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Reflection.Emit;
+using System.Drawing;
+using System.Drawing.Drawing2D;
 
 namespace Optiks_CSharp
 {
@@ -58,9 +60,53 @@ namespace Optiks_CSharp
             return new Vector(-A * B.y, A * B.x);
         }
 
+        public static Vector cross(this float A, Vector B)
+        {
+            return new Vector(-A * B.y, A * B.x);
+        }
+
+        public static Vector cross(this int A, Vector B)
+        {
+            return new Vector(-A * B.y, A * B.x);
+        }
+
         public static double cross(this Vector A, Vector B)
         {
             return A.x * B.y - A.y * B.x;
         }
+    }
+
+    enum ViewModes
+    {
+        /// <summary>
+        /// Mode in which the user can interact and modify the scene.
+        /// </summary>
+        Edit,
+        /// <summary>
+        /// Mode in which the user waits for the simulation to finish.
+        /// </summary>
+        RunSim,
+        /// <summary>
+        /// Mode in which the user can retrieve information from the simulation.
+        /// </summary>
+        GetInfo
+    }
+
+    public enum PointDisplayModes
+    {
+        /// <summary>
+        /// Show the point as a circle (less precision)
+        /// </summary>
+        Circle,
+        /// <summary>
+        /// Show the point as a cross (more precision)
+        /// </summary>
+        Cross
+    }
+
+    static class UIConstants
+    {
+        public static PointDisplayModes pointDisplay = PointDisplayModes.Circle;
+        public static ViewModes viewMode = ViewModes.Edit;
     }
 }

@@ -63,10 +63,27 @@ namespace Optiks_CSharp
                             );
                             index += 33;
                         }
-                        else
+                        else if (bytes[index] == 0x01)
                         {
                             segs.Add(
                                 new CircleArc(
+                                    new Vector(
+                                        BitConverter.ToDouble(bytes, index + 01),
+                                        BitConverter.ToDouble(bytes, index + 09)
+                                    ),
+                                    new Vector(
+                                        BitConverter.ToDouble(bytes, index + 17),
+                                        BitConverter.ToDouble(bytes, index + 25)
+                                    ),
+                                    BitConverter.ToDouble(bytes, index + 33)
+                                )
+                            );
+                            index += 41;
+                        }
+                        else
+                        {
+                            segs.Add(
+                                new ParabolicBezier(
                                     new Vector(
                                         BitConverter.ToDouble(bytes, index + 01),
                                         BitConverter.ToDouble(bytes, index + 09)
@@ -147,7 +164,7 @@ namespace Optiks_CSharp
                     bytes.AddRange(BitConverter.GetBytes(l.end.x));
                     bytes.AddRange(BitConverter.GetBytes(l.end.y));
 
-                    if (l.type == LineTypes.CircleArc)
+                    if (l.type != LineTypes.Straight)
                     {
                         bytes.AddRange(BitConverter.GetBytes(l.height * l.pointCW));
                     }

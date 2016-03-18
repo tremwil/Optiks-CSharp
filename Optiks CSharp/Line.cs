@@ -11,7 +11,8 @@ namespace Optiks_CSharp
     {
         Straight,
         CircleArc,
-        Parabolic
+        Parabolic,
+        Conic
     }
 
     abstract class Line
@@ -48,6 +49,9 @@ namespace Optiks_CSharp
             this.end = end;
             this.tangent = end - start;
             this.normal = tangent.normal().unit();
+
+            // For UI
+            this.vertex = start + tangent / 2;
         }
 
         public override Vector norm(Vector contactPoint)
@@ -73,6 +77,10 @@ namespace Optiks_CSharp
             this.width = tangent.len();
             this.radius = Math.Pow(width, 2) / (8 * height) + height / 2;
             this.center = this.start + tangent / 2 + (radius - height) * -pointCW * normal;
+
+            // For rendering & Approximate focal point
+            this.focalPoint = center + pointCW * radius / 2 * normal;
+            this.vertex = center + pointCW * radius * normal;
 
             /* Angle dipshit starts here - MIND = BLOWN ALERT */
             var delta = this.center - this.start;
@@ -121,7 +129,34 @@ namespace Optiks_CSharp
         {
             Vector I = -pointCW * normal;
             Vector R = (focalPoint - contactPoint).unit();
-            return (I + (R - I) * 0.5).unit();
+            return ((R + I) * -0.5).unit();
         }
     }
+
+    /* WIP Hyperbolic lens */
+    //class ConicSurface : Line
+    //{
+    //    public ConicSurface(Vector start, Vector end, double signedHeight, double e)
+    //    {
+    //        type = LineTypes.Conic;
+
+    //        this.start = start;
+    //        this.end = end;
+    //        tangent = end - start;
+    //        normal = tangent.normal().unit();
+
+    //        pointCW = Math.Sign(signedHeight);
+    //        height = Math.Abs(signedHeight);
+    //        width = tangent.len();
+
+    //        vertex = start + tangent / 2 + normal * signedHeight;
+    //        bezierHandle = 2 * vertex - start * 0.5 - end * 0.5;
+
+    //    }
+
+    //    public override Vector norm(Vector contactPoint)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
 }

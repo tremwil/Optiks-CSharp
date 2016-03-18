@@ -69,7 +69,16 @@ namespace Optiks_CSharp
         {
             var tx = (float)x;
             var ty = (float)y;
-            g.FillEllipse(b, tx - w, ty - w, 2 * w, 2 * w);
+
+            if (UIConstants.pointDisplay == PointDisplayModes.Circle)
+            {
+                g.FillEllipse(b, tx - w, ty - w, 2 * w, 2 * w);
+            }
+            else
+            {
+                g.DrawLine(new Pen(b), tx - w, ty, tx + w, ty);
+                g.DrawLine(new Pen(b), tx, ty - w, tx, ty + w);
+            }
         }
 
         public static Vector operator -(Vector self)
@@ -140,7 +149,7 @@ namespace Optiks_CSharp
             return new PointF((float)A.X, (float)A.Y);
         }
 
-        public static explicit operator Size(Vector A)
+        public static implicit operator Size(Vector A)
         {
             return new Size((int)A.X, (int)A.Y);
         }
@@ -158,6 +167,16 @@ namespace Optiks_CSharp
         public static implicit operator Vector(PointF A)
         {
             return new Vector(A);
+        }
+
+        public static implicit operator Vector(Size A)
+        {
+            return new Vector(A.Width, A.Height);
+        }
+
+        public static implicit operator Vector(SizeF A)
+        {
+            return new Vector(A.Width, A.Height);
         }
 
         public override string ToString()

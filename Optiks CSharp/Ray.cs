@@ -14,8 +14,8 @@ namespace Optiks_CSharp
         public Vector contactPoint;
         public Vector normal;
         public Line segment;
-        public Body body;
-        public Body secondBody;
+        public Body body = Body.NONE;
+        public Body secondBody = Body.NONE;
 
         public bool empty;
 
@@ -39,26 +39,26 @@ namespace Optiks_CSharp
             return !r.empty;
         }
 
-        public static RayCollisionInfo EMPTY = new RayCollisionInfo();
+        public static RayCollisionInfo NONE = new RayCollisionInfo();
     }
 
     class Ray
     {
         public Vector start;
         public Vector udir;
-        public Vector unorm;
         public RayCollisionInfo collision;
 
         public Ray(Vector start, Vector udir)
         {
             this.start = start;
             this.udir = udir;
-            this.unorm = udir.normal();
-            this.collision = RayCollisionInfo.EMPTY;
+            this.collision = RayCollisionInfo.NONE;
         }
 
         public RayCollisionInfo segmentIntersect(Line seg)
         {
+            var unorm = udir.normal();
+
             var v1 = seg.start - this.start;
             var v2 = seg.end - this.start;
             var t1 = v1 * this.udir;
@@ -66,25 +66,25 @@ namespace Optiks_CSharp
 
             if (t1 <= 0 && t2 <= 0)
             {
-                return RayCollisionInfo.EMPTY; //already start eliminating for moar speed
+                return RayCollisionInfo.NONE; //already start eliminating for moar speed
             }
-            var n1 = v1 * this.unorm;
-            var n2 = v2 * this.unorm;
+            var n1 = v1 * unorm;
+            var n2 = v2 * unorm;
 
             if (n1 * n2 > 0)
             {
-                return RayCollisionInfo.EMPTY;
+                return RayCollisionInfo.NONE;
             }
             if (Math.Abs(n2 - n1) <= MathExt.EPSILON)
             {
-                return RayCollisionInfo.EMPTY;
+                return RayCollisionInfo.NONE;
             }
             var a = (t2 - t1) / (n2 - n1);
             var b = t1 - n1 * a;
 
             if (b <= MathExt.EPSILON) 
             {
-                return RayCollisionInfo.EMPTY;
+                return RayCollisionInfo.NONE;
             }
             return new RayCollisionInfo(b, this.start + (b * this.udir), seg.normal, seg);
         }
@@ -98,7 +98,7 @@ namespace Optiks_CSharp
 
             if (rootSqr <= MathExt.EPSILON)
             {
-                return RayCollisionInfo.EMPTY;
+                return RayCollisionInfo.NONE;
             }
 
             var root = Math.Sqrt(rootSqr);
@@ -120,15 +120,15 @@ namespace Optiks_CSharp
                 }
             }
 
-            return RayCollisionInfo.EMPTY;
+            return RayCollisionInfo.NONE;
         }
 
         public double[] getBezierY(Vector[] points)
         {
             var tx = start.x;
             var ty = start.y;
-            var sin = -udir.y;
-            var cos = udir.x;
+            var sin = -udir.y; // Cross product of udir and (1, 0)
+            var cos = udir.x; // Dot product of udir and (1, 0)
 
             return points.Select(v => (v.x - tx) * sin + (v.y - ty) * cos).ToArray();
         }
@@ -146,21 +146,21 @@ namespace Optiks_CSharp
             double[] dists;
 
             if (Math.Abs(d) >= MathExt.EPSILON)
-            {
+            { // Two intersection points - real or complex
                 var sqr = b * b - a * c;
-                if (sqr <= 0) { return RayCollisionInfo.EMPTY; }
+                if (sqr <= 0) { return RayCollisionInfo.NONE; }
 
                 var sqrt = Math.Sqrt(sqr);
                 var m = a - b;
                 dists = new double[] { (m + sqrt) / d, (m - sqrt) / d };
             }
             else if (a != b)
-            {
-                dists = new double[] { a / (2 * (a - b)) };
+            { // Ray perpendicular to para.normal (one real intersection point)
+                dists = new double[] { a * 0.5 / (a - b) };
             }
             else
-            {
-                return RayCollisionInfo.EMPTY;
+            { // Bezier curve is a single point - no intersect
+                return RayCollisionInfo.NONE;
             }
 
             Vector best = new Vector(0, 0);
@@ -176,7 +176,7 @@ namespace Optiks_CSharp
                 var lineT = udir * (cp - start);
 
                 // point on other side of the ray
-                if (lineT < 0) { continue; }
+                if (lineT < MathExt.EPSILON) { continue; }
 
                 if (lineT < bestT)
                 {
@@ -190,17 +190,17 @@ namespace Optiks_CSharp
                 return new RayCollisionInfo(bestT, best, para.norm(best), para);
             }
 
-            return RayCollisionInfo.EMPTY;
+            return RayCollisionInfo.NONE;
         }
 
         public RayCollisionInfo bodyListIntersect(List<Body> bodies)
         {
-            collision = RayCollisionInfo.EMPTY; // Also store result in object
+            collision = RayCollisionInfo.NONE; // Also store result in object
             foreach (Body body in bodies)
             {
                 foreach (Line line in body.segments)
                 {
-                    var r = RayCollisionInfo.EMPTY;
+                    var r = RayCollisionInfo.NONE;
                     switch (line.type)
                     {
                         case LineTypes.Straight:
@@ -256,26 +256,30 @@ namespace Optiks_CSharp
         public void render(Pen p, Graphics g, Matrix transform)
         {
             Vector endPoint;
+            var nstart = transform * start;
 
             if (!collision)
             {
                 // Make ray endpoint dynamic so you can never reach it
-                var nstart = transform * start;
-                Vector offset = new Vector(nstart) - start;
-                double translate = Math.Abs(udir * offset);
+                var r = new Ray(nstart, udir);
 
-                endPoint = start + udir * ((g.ClipBounds.Height + g.ClipBounds.Width) / transform.Elements[0] + translate);
-
+                var bounds = new List<Line> {
+                    new Segment(g.ClipBounds.Location, new Vector(g.ClipBounds.Width, 0)),
+                    new Segment(new Vector(g.ClipBounds.Width, 0), g.ClipBounds.Size),
+                    new Segment(g.ClipBounds.Size, new Vector(0, g.ClipBounds.Width)),
+                    new Segment(new Vector(0, g.ClipBounds.Width), g.ClipBounds.Location)
+                };
+                // Compute intersect with bounds
+                var intersects = bounds.Select(x => r.segmentIntersect(x));
+                var maxdist = intersects.Max(x => (x) ? (x.distance == double.PositiveInfinity) ? 0 : x.distance : 0);
+                endPoint = nstart + udir * maxdist;
             }
             else
             {
-                endPoint = collision.contactPoint;
+                endPoint = transform * collision.contactPoint;
+                g.DrawLine(Pens.Red, endPoint, endPoint + collision.normal * 60);
             }
-            
-            var points = new PointF[] { start, endPoint };
-            transform.TransformPoints(points);
-
-            g.DrawLine(p, points[0], points[1]);
+            g.DrawLine(p, nstart, endPoint);
         }
     }
 }
