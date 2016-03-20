@@ -40,7 +40,7 @@ namespace Optiks_CSharp
 
         public void render(Graphics g, Matrix t)
         {
-            if (UIConstants.viewMode != ViewModes.Edit)
+            if (StaticParameters.viewMode != ViewModes.Edit)
             {
                 int e = (stopped) ? rays.Count : rays.Count - 1;
                 for (int i = 0; i < e; i++)

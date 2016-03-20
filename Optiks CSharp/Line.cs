@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing.Drawing2D;
+using System.Numerics;
 
 namespace Optiks_CSharp
 {
@@ -35,6 +36,12 @@ namespace Optiks_CSharp
         public Vector focalPoint;
         public Vector vertex;
         public Vector bezierHandle;
+
+        public double weight;
+        public double a;
+        public double b;
+        public double c;
+        public double e;
 
         public abstract Vector norm(Vector contactPoint);
     }
@@ -123,6 +130,8 @@ namespace Optiks_CSharp
             vertex = start + tangent / 2 + normal * signedHeight;
             focalPoint = vertex + Math.Pow(width * 0.5, 2) / (-4 * signedHeight) * normal;
             bezierHandle = 2 * vertex - start * 0.5 - end * 0.5;
+
+            weight = 1;
         }
 
         public override Vector norm(Vector contactPoint)
@@ -133,30 +142,55 @@ namespace Optiks_CSharp
         }
     }
 
-    /* WIP Hyperbolic lens */
-    //class ConicSurface : Line
-    //{
-    //    public ConicSurface(Vector start, Vector end, double signedHeight, double e)
-    //    {
-    //        type = LineTypes.Conic;
+    class ConicSegment: Line
+    {
+        public ConicSegment(Vector start, Vector end, double signedHeight, double w)
+        {
+            type = LineTypes.Conic;
 
-    //        this.start = start;
-    //        this.end = end;
-    //        tangent = end - start;
-    //        normal = tangent.normal().unit();
+            this.start = start;
+            this.end = end;
+            tangent = end - start;
+            normal = tangent.normal().unit();
 
-    //        pointCW = Math.Sign(signedHeight);
-    //        height = Math.Abs(signedHeight);
-    //        width = tangent.len();
+            pointCW = Math.Sign(signedHeight);
+            height = Math.Abs(signedHeight);
+            width = tangent.len();
 
-    //        vertex = start + tangent / 2 + normal * signedHeight;
-    //        bezierHandle = 2 * vertex - start * 0.5 - end * 0.5;
+            weight = w;
+            vertex = start + tangent / 2 + normal * signedHeight;
+            bezierHandle = start + tangent / 2 + normal * signedHeight * (w + 1) / w;
 
-    //    }
+            Complex b0 = start;
+            Complex b1 = bezierHandle;
+            Complex b2 = end;
 
-    //    public override Vector norm(Vector contactPoint)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-    //}
+            double a = 1 / (1 - w * w);
+            Complex M = 0.5 * (b0 + b2);
+            Complex d = (1 - a) * b1 * b1 + a * b0 * b2;
+            Complex C = (1 - a) * b1 + a * M; center = C;
+            Complex c = Complex.Sqrt(C * C - d);
+
+            center = C;
+            focalPoint = C - c;
+            this.a = (vertex - center).len();
+            this.c = c.Magnitude;
+            this.b = Math.Sqrt(this.c * this.c - this.a * this.a);
+            this.e = this.c / this.a;
+            Console.WriteLine("nothing");
+        }
+
+        public override Vector norm(Vector contactPoint)
+        {
+            var sina = -normal.y;
+            var cosa = normal.x;
+
+            var tCP = new Vector(
+                (contactPoint.x - center.x) * cosa - (contactPoint.y - center.y) * sina,
+                (contactPoint.x - center.x) * sina + (contactPoint.y - center.y) * cosa
+            );
+
+            return new Vector(tCP.y / (b * b), tCP.x / (a * a)).unit();
+        }
+    }
 }

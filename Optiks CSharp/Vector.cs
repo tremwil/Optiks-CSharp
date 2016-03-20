@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Numerics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
@@ -70,7 +71,7 @@ namespace Optiks_CSharp
             var tx = (float)x;
             var ty = (float)y;
 
-            if (UIConstants.pointDisplay == PointDisplayModes.Circle)
+            if (StaticParameters.pointDisplay == PointDisplayModes.Circle)
             {
                 g.FillEllipse(b, tx - w, ty - w, 2 * w, 2 * w);
             }
@@ -177,6 +178,16 @@ namespace Optiks_CSharp
         public static implicit operator Vector(SizeF A)
         {
             return new Vector(A.Width, A.Height);
+        }
+
+        public static implicit operator Complex(Vector A)
+        {
+            return new Complex(A.x, A.y);
+        }
+
+        public static implicit operator Vector(Complex A)
+        {
+            return new Vector(A.Real, A.Imaginary);
         }
 
         public override string ToString()

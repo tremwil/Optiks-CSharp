@@ -193,6 +193,72 @@ namespace Optiks_CSharp
             return RayCollisionInfo.NONE;
         }
 
+        public RayCollisionInfo conicIntersect(Line conic)
+        {
+            if (conic.weight == 1)
+            {
+                return parabolaIntersect(conic);
+            }
+
+            var points = getBezierY(new Vector[]
+                { conic.start, conic.bezierHandle, conic.end }
+            );
+
+            var w = conic.weight;
+            var a = points[0];
+            var b = points[1];
+            var c = points[2];
+            var d = a - 2 * b * w + c;
+            double[] dists;
+
+            if (Math.Abs(d) >= MathExt.EPSILON)
+            { // Two intersection points - real or complex
+                var sqr = b * b * w * w - a * c;
+                if (sqr <= 0) { return RayCollisionInfo.NONE; }
+
+                var sqrt = Math.Sqrt(sqr);
+                var m = a - b * w;
+                dists = new double[] { (m + sqrt) / d, (m - sqrt) / d };
+            }
+            else if (a != b)
+            { // Ray is stewpid (1 intersect)
+                dists = new double[] { a * 0.5 / (a - b * w) };
+            }
+            else
+            { // Bezier curve is a single point - no intersect
+                return RayCollisionInfo.NONE;
+            }
+
+            Vector best = new Vector(0, 0);
+            double bestT = double.PositiveInfinity;
+
+            foreach (double t in dists)
+            {
+                // point not on curve
+                if (t < MathExt.EPSILON || t > 1 - MathExt.EPSILON) { continue; }
+
+                // Compute actual intersection point & distance
+                Vector cp = MathExt.evalWBezier(conic, t);
+                var lineT = udir * (cp - start);
+
+                // point on other side of the ray
+                if (lineT < MathExt.EPSILON) { continue; }
+
+                if (lineT < bestT)
+                {
+                    bestT = lineT;
+                    best = cp;
+                }
+            }
+
+            if (bestT != double.PositiveInfinity)
+            {
+                return new RayCollisionInfo(bestT, best, conic.norm(best), conic);
+            }
+
+            return RayCollisionInfo.NONE;
+        }
+
         public RayCollisionInfo bodyListIntersect(List<Body> bodies)
         {
             collision = RayCollisionInfo.NONE; // Also store result in object
@@ -213,6 +279,10 @@ namespace Optiks_CSharp
 
                         case LineTypes.Parabolic:
                             r = parabolaIntersect(line);
+                            break;
+
+                        case LineTypes.Conic:
+                            r = conicIntersect(line);
                             break;
                     }  
                     
@@ -277,7 +347,12 @@ namespace Optiks_CSharp
             else
             {
                 endPoint = transform * collision.contactPoint;
-                g.DrawLine(Pens.Red, endPoint, endPoint + collision.normal * 60);
+
+                if (StaticParameters.viewMode == ViewModes.GetInfo && StaticParameters.showRayNormals)
+                {
+                    var n = (udir * collision.normal < 0) ? collision.normal : -collision.normal;
+                    g.DrawLine(Pens.Red, endPoint - n * 30, endPoint + n * 30);
+                }
             }
             g.DrawLine(p, nstart, endPoint);
         }

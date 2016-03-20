@@ -35,6 +35,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -53,7 +54,7 @@
       <DependentUpon>AppWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="Body.cs" />
-    <Compile Include="Constants.cs" />
+    <Compile Include="Statics.cs" />
     <Compile Include="DrawingPanel.cs">
       <SubType>Component</SubType>
     </Compile>

@@ -39,6 +39,8 @@ namespace Optiks_CSharp
 
         private bool empty;
 
+        public string name = "";
+
         public Body(List<Line> segments, double n, BodyTypes type, Pen pen, SolidBrush brush, DrawTypes mode)
         {
             empty = false;
@@ -83,6 +85,15 @@ namespace Optiks_CSharp
 
                     gpath.AddBezier(l.start, CP1, CP2, l.end);
                 }
+                if (l.type == LineTypes.Conic)
+                {
+                    List<PointF> spline = new List<PointF>();
+                    for (var i = 0; i <= 20; i++)
+                    {
+                        spline.Add(MathExt.evalWBezier(l, 0.05 * i));
+                    }
+                    gpath.AddCurve(spline.ToArray());
+                }
             }
 
             gpath.CloseFigure();
@@ -103,7 +114,7 @@ namespace Optiks_CSharp
             {
                 g.FillPath(brush, newPath);
             }
-            if (UIConstants.viewMode == ViewModes.Edit)
+            if (StaticParameters.viewMode == ViewModes.Edit)
             {
 
             }
@@ -116,67 +127,4 @@ namespace Optiks_CSharp
 
         public static Body NONE = new Body();
     }
-
-    //enum LensTypes
-    //{
-    //    Convergent,
-    //    Divergent
-    //}
-
-    //class PerfectLens : Body
-    //{
-    //    private bool empty;
-
-    //    public PerfectLens(Segment s, double fociPos, double fociNeg, double width, Pen p, SolidBrush b, DrawTypes d)
-    //    {
-    //        empty = false;
-    //        drawMode = d;
-    //        refractionIndex = 1;
-    //        this.segments = new List<Line> { s };
-
-    //        this.type = BodyTypes.PerfectLens;
-    //        this.pen = p;
-    //        this.brush = b;
-
-
-
-    //        recomputeGpath();
-    //    }
-
-    //    public void recomputeGpath()
-    //    {
-    //        gpath = new GraphicsPath();
-    //        gpath.StartFigure();
-
-    //        foreach (Line l in segments)
-    //        {
-    //            if (l.type == LineTypes.Straight)
-    //            {
-    //                gpath.AddLine(l.start, l.end);
-    //            }
-    //            if (l.type == LineTypes.CircleArc)
-    //            {
-    //                var v = l.center - new Vector(l.radius, l.radius);
-    //                var rect = new RectangleF(v, new SizeF((float)l.radius * 2, (float)l.radius * 2));
-    //                gpath.AddArc(rect, (float)l.startAngle, (float)l.sweepAngle);
-    //            }
-    //            if (l.type == LineTypes.Parabolic)
-    //            {
-    //                // Convert quad Bezier to cubic because GDI+ doesn't support quad
-    //                Vector CP1 = l.start + 2d / 3 * (l.bezierHandle - l.start);
-    //                Vector CP2 = l.end + 2d / 3 * (l.bezierHandle - l.end);
-
-    //                gpath.AddBezier(l.start, CP1, CP2, l.end);
-    //            }
-    //        }
-
-    //        gpath.CloseFigure();
-    //        bounds = gpath.GetBounds();
-    //    }
-
-    //    public static implicit operator bool (PerfectLens b)
-    //    {
-    //        return !b.empty;
-    //    }
-    //}
 }

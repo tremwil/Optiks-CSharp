@@ -19,11 +19,16 @@ namespace Optiks_CSharp
         Point dragPos;
 
         bool displayAxes = true;
+        bool displayGrad = true;
         int maxGridSize = 150;
         int minGridSize = 15;
+        int minTextGridSize = 30;
+        float gridSize;
 
         Body selectedBody = Body.NONE;
+        int selectedBodyIndex = 0;
         LightRay selectedLightRay = LightRay.NONE;
+        int selectedLightRayIndex = 0;
         PointRotor lightRayRotor;
         bool movingLray = false;
 
@@ -63,10 +68,10 @@ namespace Optiks_CSharp
                 new Body(
                     new List<Line>
                     {
-                        new Segment(new Vector(0, 0), new Vector(10, 0)),
+                        new ConicSegment(new Vector(0, 0), new Vector(10, 0), -2, 1.5),
                         new Segment(new Vector(10, 0), new Vector(10, 2)),
                         new Segment(new Vector(10, 2), new Vector(0, 2)),
-                        new ParabolicBezier(new Vector(0, 2), new Vector(0, 0), 1)
+                        new Segment(new Vector(0, 2), new Vector(0, 0))
                     },
                     1.5,
                     BodyTypes.Refracting,
@@ -85,7 +90,7 @@ namespace Optiks_CSharp
 
             setViewMode(ViewModes.Edit);
             physT = new Timer();
-            physT.Interval = 1000;
+            physT.Interval = 1;
             physT.Tick += updateScene;
 
             openSceneBinary = new OpenFileDialog();
@@ -236,16 +241,16 @@ namespace Optiks_CSharp
 
         private void setViewMode(ViewModes v)
         {
-            if (v == UIConstants.viewMode)
+            if (v == StaticParameters.viewMode)
             {
                 return;
             }
-            UIConstants.viewMode = v;
+            StaticParameters.viewMode = v;
             selectedBody = Body.NONE;
             selectedLightRay = LightRay.NONE;
 
-            if (UIConstants.viewMode == ViewModes.Edit) { scene.reset(); }
-            if (UIConstants.viewMode == ViewModes.RunSim) { physT.Start(); } 
+            if (StaticParameters.viewMode == ViewModes.Edit) { scene.reset(); }
+            if (StaticParameters.viewMode == ViewModes.RunSim) { physT.Start(); } 
 
             canvas.Invalidate();
         }
@@ -267,26 +272,24 @@ namespace Optiks_CSharp
         {
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
-            scene.renderBodies(e.Graphics, viewTransform);
-            scene.renderLightRays(e.Graphics, viewTransform);
-
-            Pen axisPen = new Pen(Color.FromArgb(128, 100, 100, 100), 1);
-
             //Graph section
             if (displayAxes)
             {
                 e.Graphics.SmoothingMode = SmoothingMode.None;
 
                 var zoom = viewTransform.Elements[0];
-                var gridSize = zoom;
+                gridSize = zoom;
 
+                var c = 1d;
                 while (gridSize > maxGridSize)
                 {
                     gridSize /= 10;
+                    c /= 10;
                 }
                 while (gridSize < minGridSize)
                 {
                     gridSize *= 10;
+                    c *= 10;
                 }
 
                 var dx = viewTransform.Elements[4];
@@ -296,17 +299,44 @@ namespace Optiks_CSharp
 
                 for (float i = dx % gridSize; i < w; i += gridSize)
                 {
-                    Pen p = (i - dx < 1 && i - dx > -1) ? new Pen(Color.Black, 2) : new Pen(Color.FromArgb(160, Color.Gray));
+                    Pen p = (i - dx < 1 && i - dx > -1) ? Pens.Black : new Pen(Color.FromArgb(160, Color.LightGray));
                     e.Graphics.DrawLine(p, i, 0, i, h);
+
+                    var s = Math.Round((i - dx) / gridSize);
+                    if (gridSize >= minTextGridSize && displayGrad)
+                    { 
+                        e.Graphics.DrawString((s * c).ToString(), SystemFonts.DefaultFont, Brushes.Black, new PointF(i, dy));
+                        e.Graphics.DrawLine(Pens.Black, i, dy - 4, i, dy + 4);
+                    }
+                    else if (displayGrad && s % 2 == 0)
+                    {
+                        e.Graphics.DrawString((s * c).ToString(), SystemFonts.DefaultFont, Brushes.Black, new PointF(i, dy));
+                        e.Graphics.DrawLine(Pens.Black, i, dy - 4, i, dy + 4);
+                    }
                 }
                 for (float i = dy % gridSize; i < h; i += gridSize)
                 {
-                    Pen p = (i - dy < 1 && i - dy > -1) ? new Pen(Color.Black, 2) : new Pen(Color.FromArgb(160, Color.Gray));
-                    e.Graphics.DrawLine(new Pen(Color.FromArgb(160, Color.Gray)), 0, i, w, i);
+                    Pen p = (i - dy < 1 && i - dy > -1) ? Pens.Black : new Pen(Color.FromArgb(160, Color.LightGray));
+                    e.Graphics.DrawLine(p, 0, i, w, i);
+
+                    var s = Math.Round((i - dy) / gridSize);
+                    if (gridSize >= minTextGridSize && displayGrad)
+                    {
+                        e.Graphics.DrawString((s * c).ToString(), SystemFonts.DefaultFont, Brushes.Black, new PointF(dx, i));
+                        e.Graphics.DrawLine(Pens.Black, dx - 4, i, dx + 4, i);
+                    }
+                    else if (displayGrad && s % 2 == 0)
+                    {
+                        e.Graphics.DrawString((s * c).ToString(), SystemFonts.DefaultFont, Brushes.Black, new PointF(dx, i));
+                        e.Graphics.DrawLine(Pens.Black, dx - 4, i, dx + 4, i);
+                    }
                 }
 
                 e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             }
+
+            scene.renderBodies(e.Graphics, viewTransform);
+            scene.renderLightRays(e.Graphics, viewTransform);
 
             //Selected hitbox & body
             if (selectedBody)
@@ -505,7 +535,7 @@ namespace Optiks_CSharp
 
         private void canvas_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            if (UIConstants.viewMode != ViewModes.Edit)
+            if (StaticParameters.viewMode != ViewModes.Edit)
             {
                 return;
             }
@@ -514,20 +544,24 @@ namespace Optiks_CSharp
             selectedBody = Body.NONE;
             Vector scaledMousePos = viewTransform.inverseTransform(new Vector(e.Location));
 
+            int i = 0;
             foreach (LightRay r in scene.lightRays)
             {
 
                 if ((scaledMousePos - r.rays[0].start).len() * viewTransform.Elements[0] <= 7) {
                     selectedLightRay = r;
+                    selectedLightRayIndex = i;
                     lightRayRotor = new PointRotor(selectedLightRay.rays[0].start);
                     canvas.Invalidate();
                     return;
                 }
+                i++;
             }
 
             List<Body> lB = scene.bodies;
             lB.Sort((x1, x2) => (int)(x2.bounds.Height * x2.bounds.Width - x1.bounds.Height * x1.bounds.Width));
 
+            i = 0;
             foreach (Body b in lB)
             {
                 GraphicsPath gPath = (GraphicsPath)b.gpath.Clone();
@@ -536,9 +570,11 @@ namespace Optiks_CSharp
                 if (gPath.IsVisible(e.X, e.Y))
                 {
                     selectedBody = b;
+                    selectedBodyIndex = i;
                     canvas.Invalidate();
                     return;
                 }
+                i++;
             }
 
             canvas.Invalidate();
@@ -572,7 +608,7 @@ namespace Optiks_CSharp
 
         private void pointToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            UIConstants.pointDisplay = PointDisplayModes.Circle;
+            StaticParameters.pointDisplay = PointDisplayModes.Circle;
             pointToolStripMenuItem.Checked = true;
             crossToolStripMenuItem.Checked = false;
             canvas.Invalidate();
@@ -580,7 +616,7 @@ namespace Optiks_CSharp
 
         private void crossToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            UIConstants.pointDisplay = PointDisplayModes.Cross;
+            StaticParameters.pointDisplay = PointDisplayModes.Cross;
             pointToolStripMenuItem.Checked = false;
             crossToolStripMenuItem.Checked = true;
             canvas.Invalidate();
@@ -605,6 +641,45 @@ namespace Optiks_CSharp
         private void resetViewToolStripMenuItem_Click(object sender, EventArgs e)
         {
             resetView();
+        }
+
+        private void graduationsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            displayGrad = !displayGrad;
+            canvas.Invalidate();
+        }
+
+        private void diffractionNYEToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            StaticParameters.useDiffraction = !StaticParameters.useDiffraction;
+            MessageBox.Show(
+                "Turned diffraction " + ((StaticParameters.useDiffraction) ? "on." : "off."),
+                "Info", 
+                MessageBoxButtons.OK, 
+                MessageBoxIcon.Information
+            );
+        }
+
+        private void rayNormalsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            StaticParameters.showRayNormals = !StaticParameters.showRayNormals;
+            canvas.Invalidate();
+        }
+
+        private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (selectedLightRay)
+            {
+                scene.lightRays.RemoveAt(selectedLightRayIndex);
+                selectedLightRay = LightRay.NONE;
+                canvas.Invalidate();
+            }
+            if (selectedBody)
+            {
+                scene.bodies.RemoveAt(selectedBodyIndex);
+                selectedBody = Body.NONE;
+                canvas.Invalidate();
+            }
         }
     }
 }
