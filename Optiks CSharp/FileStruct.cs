@@ -80,7 +80,7 @@ namespace Optiks_CSharp
                             );
                             index += 41;
                         }
-                        else
+                        else if (bytes[index] == 0x02)
                         {
                             segs.Add(
                                 new ParabolicBezier(
@@ -96,6 +96,24 @@ namespace Optiks_CSharp
                                 )
                             );
                             index += 41;
+                        }
+                        else if (bytes[index] == 0x03)
+                        {
+                            segs.Add(
+                                new HyperbolicSurface(
+                                    new Vector(
+                                        BitConverter.ToDouble(bytes, index + 01),
+                                        BitConverter.ToDouble(bytes, index + 09)
+                                    ),
+                                    new Vector(
+                                        BitConverter.ToDouble(bytes, index + 17),
+                                        BitConverter.ToDouble(bytes, index + 25)
+                                    ),
+                                    BitConverter.ToDouble(bytes, index + 33),
+                                    BitConverter.ToDouble(bytes, index + 41)
+                                )
+                            );
+                            index += 49;
                         }
                     }
                     bodies.Add(
@@ -167,6 +185,10 @@ namespace Optiks_CSharp
                     if (l.type != LineTypes.Straight)
                     {
                         bytes.AddRange(BitConverter.GetBytes(l.height * l.pointCW));
+                    }
+                    if (l.type == LineTypes.Hyperbolic)
+                    {
+                        bytes.AddRange(BitConverter.GetBytes(l.e));
                     }
                 }
                 bytes.Add(0xff);

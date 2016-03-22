@@ -8,7 +8,7 @@ using System.Drawing.Drawing2D;
 
 namespace Optiks_CSharp
 {
-    class LightRay
+    class LightRay : ICloneable
     {
         public List<Ray> rays;
         public int maxRays;
@@ -154,6 +154,18 @@ namespace Optiks_CSharp
                 return;
             }
             rays.Add(ray2);
+        }
+
+        public LightRay Clone()
+        {
+            return new LightRay(
+                new Ray(
+                    new Vector(rays[0].start),
+                    new Vector(rays[0].udir)
+                ),
+                maxRays,
+                new Pen(pen.Brush, pen.Width)
+            );
         }
     }
 }

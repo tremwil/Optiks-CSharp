@@ -54,6 +54,12 @@
       <DependentUpon>AppWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="Body.cs" />
+    <Compile Include="AppCore.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Paint.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Statics.cs" />
     <Compile Include="DrawingPanel.cs">
       <SubType>Component</SubType>
@@ -91,6 +97,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="SNP.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

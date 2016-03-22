@@ -42,6 +42,14 @@
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.cutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pasteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.bodiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.raysToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.simulationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.runSimulationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -53,13 +61,9 @@
             this.pointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.crossToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.rayNormalsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.raySurfaceAnglesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.physicsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.diffractionNYEToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.editToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.cutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.pasteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabs.SuspendLayout();
             this.baseContainer.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.logoContainer)).BeginInit();
@@ -208,6 +212,83 @@
             this.saveAsToolStripMenuItem.Text = "Save As...";
             this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
             // 
+            // editToolStripMenuItem1
+            // 
+            this.editToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.copyToolStripMenuItem,
+            this.cutToolStripMenuItem,
+            this.pasteToolStripMenuItem,
+            this.deleteToolStripMenuItem,
+            this.deleteAllToolStripMenuItem});
+            this.editToolStripMenuItem1.Name = "editToolStripMenuItem1";
+            this.editToolStripMenuItem1.Size = new System.Drawing.Size(39, 20);
+            this.editToolStripMenuItem1.Text = "Edit";
+            // 
+            // copyToolStripMenuItem
+            // 
+            this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
+            this.copyToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C)));
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
+            this.copyToolStripMenuItem.Text = "Copy";
+            this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
+            // 
+            // cutToolStripMenuItem
+            // 
+            this.cutToolStripMenuItem.Name = "cutToolStripMenuItem";
+            this.cutToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.X)));
+            this.cutToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
+            this.cutToolStripMenuItem.Text = "Cut";
+            this.cutToolStripMenuItem.Click += new System.EventHandler(this.cutToolStripMenuItem_Click);
+            // 
+            // pasteToolStripMenuItem
+            // 
+            this.pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
+            this.pasteToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.V)));
+            this.pasteToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
+            this.pasteToolStripMenuItem.Text = "Paste";
+            this.pasteToolStripMenuItem.Click += new System.EventHandler(this.pasteToolStripMenuItem_Click);
+            // 
+            // deleteToolStripMenuItem
+            // 
+            this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
+            this.deleteToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Delete;
+            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
+            this.deleteToolStripMenuItem.Text = "Delete";
+            this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
+            // 
+            // deleteAllToolStripMenuItem
+            // 
+            this.deleteAllToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.bodiesToolStripMenuItem,
+            this.raysToolStripMenuItem});
+            this.deleteAllToolStripMenuItem.Name = "deleteAllToolStripMenuItem";
+            this.deleteAllToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl+Del";
+            this.deleteAllToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Delete)));
+            this.deleteAllToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
+            this.deleteAllToolStripMenuItem.Text = "Delete all...";
+            this.deleteAllToolStripMenuItem.Click += new System.EventHandler(this.deleteAllToolStripMenuItem_Click);
+            // 
+            // bodiesToolStripMenuItem
+            // 
+            this.bodiesToolStripMenuItem.Name = "bodiesToolStripMenuItem";
+            this.bodiesToolStripMenuItem.RightToLeftAutoMirrorImage = true;
+            this.bodiesToolStripMenuItem.ShortcutKeyDisplayString = "";
+            this.bodiesToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Alt) 
+            | System.Windows.Forms.Keys.D0)));
+            this.bodiesToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
+            this.bodiesToolStripMenuItem.Text = "Bodies";
+            this.bodiesToolStripMenuItem.Click += new System.EventHandler(this.bodiesToolStripMenuItem_Click);
+            // 
+            // raysToolStripMenuItem
+            // 
+            this.raysToolStripMenuItem.Name = "raysToolStripMenuItem";
+            this.raysToolStripMenuItem.ShortcutKeyDisplayString = "";
+            this.raysToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.D0)));
+            this.raysToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
+            this.raysToolStripMenuItem.Text = "Rays";
+            this.raysToolStripMenuItem.Click += new System.EventHandler(this.raysToolStripMenuItem_Click);
+            // 
             // simulationToolStripMenuItem
             // 
             this.simulationToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -240,7 +321,8 @@
             this.graduationsToolStripMenuItem,
             this.axesToolStripMenuItem,
             this.pointsToolStripMenuItem,
-            this.rayNormalsToolStripMenuItem});
+            this.rayNormalsToolStripMenuItem,
+            this.raySurfaceAnglesToolStripMenuItem});
             this.creditsToolStripMenuItem.Name = "creditsToolStripMenuItem";
             this.creditsToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.creditsToolStripMenuItem.Text = "View";
@@ -249,7 +331,7 @@
             // 
             this.resetViewToolStripMenuItem.Name = "resetViewToolStripMenuItem";
             this.resetViewToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F1;
-            this.resetViewToolStripMenuItem.Size = new System.Drawing.Size(214, 22);
+            this.resetViewToolStripMenuItem.Size = new System.Drawing.Size(245, 22);
             this.resetViewToolStripMenuItem.Text = "Reset View";
             this.resetViewToolStripMenuItem.Click += new System.EventHandler(this.resetViewToolStripMenuItem_Click);
             // 
@@ -260,7 +342,7 @@
             this.graduationsToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.graduationsToolStripMenuItem.Name = "graduationsToolStripMenuItem";
             this.graduationsToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G)));
-            this.graduationsToolStripMenuItem.Size = new System.Drawing.Size(214, 22);
+            this.graduationsToolStripMenuItem.Size = new System.Drawing.Size(245, 22);
             this.graduationsToolStripMenuItem.Text = "Graduations";
             this.graduationsToolStripMenuItem.Click += new System.EventHandler(this.graduationsToolStripMenuItem_Click);
             // 
@@ -271,7 +353,7 @@
             this.axesToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.axesToolStripMenuItem.Name = "axesToolStripMenuItem";
             this.axesToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.A)));
-            this.axesToolStripMenuItem.Size = new System.Drawing.Size(214, 22);
+            this.axesToolStripMenuItem.Size = new System.Drawing.Size(245, 22);
             this.axesToolStripMenuItem.Text = "Axes";
             this.axesToolStripMenuItem.Click += new System.EventHandler(this.axesToolStripMenuItem_Click);
             // 
@@ -281,7 +363,7 @@
             this.pointToolStripMenuItem,
             this.crossToolStripMenuItem});
             this.pointsToolStripMenuItem.Name = "pointsToolStripMenuItem";
-            this.pointsToolStripMenuItem.Size = new System.Drawing.Size(214, 22);
+            this.pointsToolStripMenuItem.Size = new System.Drawing.Size(245, 22);
             this.pointsToolStripMenuItem.Text = "Points";
             // 
             // pointToolStripMenuItem
@@ -309,9 +391,17 @@
             this.rayNormalsToolStripMenuItem.Name = "rayNormalsToolStripMenuItem";
             this.rayNormalsToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
             | System.Windows.Forms.Keys.N)));
-            this.rayNormalsToolStripMenuItem.Size = new System.Drawing.Size(214, 22);
+            this.rayNormalsToolStripMenuItem.Size = new System.Drawing.Size(245, 22);
             this.rayNormalsToolStripMenuItem.Text = "Ray normals";
             this.rayNormalsToolStripMenuItem.Click += new System.EventHandler(this.rayNormalsToolStripMenuItem_Click);
+            // 
+            // raySurfaceAnglesToolStripMenuItem
+            // 
+            this.raySurfaceAnglesToolStripMenuItem.Name = "raySurfaceAnglesToolStripMenuItem";
+            this.raySurfaceAnglesToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.A)));
+            this.raySurfaceAnglesToolStripMenuItem.Size = new System.Drawing.Size(245, 22);
+            this.raySurfaceAnglesToolStripMenuItem.Text = "Ray surface angles";
             // 
             // physicsToolStripMenuItem
             // 
@@ -330,46 +420,6 @@
             this.diffractionNYEToolStripMenuItem.Size = new System.Drawing.Size(221, 22);
             this.diffractionNYEToolStripMenuItem.Text = "Diffraction (NE)";
             this.diffractionNYEToolStripMenuItem.Click += new System.EventHandler(this.diffractionNYEToolStripMenuItem_Click);
-            // 
-            // editToolStripMenuItem1
-            // 
-            this.editToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.copyToolStripMenuItem,
-            this.cutToolStripMenuItem,
-            this.pasteToolStripMenuItem,
-            this.deleteToolStripMenuItem});
-            this.editToolStripMenuItem1.Name = "editToolStripMenuItem1";
-            this.editToolStripMenuItem1.Size = new System.Drawing.Size(39, 20);
-            this.editToolStripMenuItem1.Text = "Edit";
-            // 
-            // copyToolStripMenuItem
-            // 
-            this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            this.copyToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C)));
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.copyToolStripMenuItem.Text = "Copy";
-            // 
-            // cutToolStripMenuItem
-            // 
-            this.cutToolStripMenuItem.Name = "cutToolStripMenuItem";
-            this.cutToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.X)));
-            this.cutToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.cutToolStripMenuItem.Text = "Cut";
-            // 
-            // pasteToolStripMenuItem
-            // 
-            this.pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
-            this.pasteToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.V)));
-            this.pasteToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.pasteToolStripMenuItem.Text = "Paste";
-            // 
-            // deleteToolStripMenuItem
-            // 
-            this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
-            this.deleteToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Delete;
-            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.deleteToolStripMenuItem.Text = "Delete";
-            this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
             // 
             // AppWindow
             // 
@@ -426,6 +476,10 @@
         private System.Windows.Forms.ToolStripMenuItem cutToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem pasteToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem deleteAllToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem bodiesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem raysToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem raySurfaceAnglesToolStripMenuItem;
     }
 }
 

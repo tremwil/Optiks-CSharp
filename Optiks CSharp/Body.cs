@@ -85,14 +85,14 @@ namespace Optiks_CSharp
 
                     gpath.AddBezier(l.start, CP1, CP2, l.end);
                 }
-                if (l.type == LineTypes.Conic)
+                if (l.type == LineTypes.Hyperbolic)
                 {
                     List<PointF> spline = new List<PointF>();
-                    for (var i = 0; i <= 20; i++)
+                    for (var i = 0; i <= 100; i++)
                     {
-                        spline.Add(MathExt.evalWBezier(l, 0.05 * i));
+                        spline.Add(MathExt.evalWBezier(l, 0.01 * i));
                     }
-                    gpath.AddCurve(spline.ToArray());
+                    gpath.AddLines(spline.ToArray());
                 }
             }
 

@@ -14,393 +14,16 @@ namespace Optiks_CSharp
 {
     public partial class AppWindow : Form
     {
-        Matrix viewTransform = new Matrix();
-        Matrix defaultView = new Matrix();
-        Point dragPos;
-
-        bool displayAxes = true;
-        bool displayGrad = true;
-        int maxGridSize = 150;
-        int minGridSize = 15;
-        int minTextGridSize = 30;
-        float gridSize;
-
-        Body selectedBody = Body.NONE;
-        int selectedBodyIndex = 0;
-        LightRay selectedLightRay = LightRay.NONE;
-        int selectedLightRayIndex = 0;
-        PointRotor lightRayRotor;
-        bool movingLray = false;
-
-        Scene scene;
-        Timer physT;
-
-        OpenFileDialog openSceneBinary;
-        SaveFileDialog saveSceneBinary;
-
-        LightRay clipboardLray;
-        Body clipboardBody;
-
-        string lastSave;
-        bool sameToSave = true;
-        public string windowText = "Optiks Csharp V.1.4.2 - ";
-
-        public AppWindow()
+        public void canvas_MouseWheel(object sender, MouseEventArgs e)
         {
-            InitializeComponent();
-        }
-
-        private void AppWindow_Load(object sender, EventArgs e)
-        {
-
-            this.canvas.MouseWheel += canvas_MouseWheel;
-            this.canvas.MouseMove += canvas_MouseMove;
-            this.canvas.MouseDown += canvas_MouseDown;
-            this.canvas.MouseUp += canvas_MouseUp;
-            this.canvas.PreviewKeyDown += canvas_PreviewKeyDown;
-
-            defaultView = new Matrix(10, 0, 0, 10, canvas.Width/2, canvas.Height/2);
-
-            lastSave = "New File";
-            Text = windowText + lastSave;
-            scene = new Scene(new List<Body>
+            if (viewTransform.Elements[0] > 500000 && e.Delta > 0)
             {
-                new Body(
-                    new List<Line>
-                    {
-                        new ConicSegment(new Vector(0, 0), new Vector(10, 0), -2, 1.5),
-                        new Segment(new Vector(10, 0), new Vector(10, 2)),
-                        new Segment(new Vector(10, 2), new Vector(0, 2)),
-                        new Segment(new Vector(0, 2), new Vector(0, 0))
-                    },
-                    1.5,
-                    BodyTypes.Refracting,
-                    new Pen(Color.Black, 1),
-                    new SolidBrush(Color.FromArgb(50, Color.Aqua)),
-                    DrawTypes.Draw | DrawTypes.Fill
-                )
-            }, new List<LightRay>
-            {
-                new LightRay(
-                    new Ray(new Vector(0.3, 2), Vector.fromAngle(-Math.PI/2)),
-                    10,
-                    Pens.Green
-                )
-            });
-
-            setViewMode(ViewModes.Edit);
-            physT = new Timer();
-            physT.Interval = 1;
-            physT.Tick += updateScene;
-
-            openSceneBinary = new OpenFileDialog();
-            openSceneBinary.Filter = "Optiks Scene Files (*.opt)|*.opt|All Files (*.*)|*.*";
-            openSceneBinary.FilterIndex = 0;
-            openSceneBinary.DefaultExt = "opt";
-            openSceneBinary.Multiselect = false;
-
-            saveSceneBinary = new SaveFileDialog();
-            saveSceneBinary.Filter = "Optiks Scene Files (*.opt)|*.opt|All Files (*.*)|*.*";
-            saveSceneBinary.DefaultExt = "opt";
-        }
-
-        public void newScene()
-        {
-            DialogResult ok;
-            if (sameToSave || (scene.bodies.Count == 0 && scene.lightRays.Count == 0))
-            {
-                ok = DialogResult.No;
-            }
-            else
-            {
-                ok = MessageBox.Show(
-                    "Some changes have not been saved. Save now?",
-                    "Not saved!",
-                    MessageBoxButtons.YesNoCancel,
-                    MessageBoxIcon.Warning
-                );
-            }
-
-            if (ok == DialogResult.Yes) {
-                askSaveSceneFile(true);
-            }
-
-            if (ok == DialogResult.Cancel)
-            {
-                return;
-            }
-
-            viewTransform = defaultView;
-            selectedBody = Body.NONE;
-            selectedLightRay = LightRay.NONE;
-            lastSave = "New File";
-            Text = windowText + lastSave;
-            scene = new Scene(new List<Body>(), new List<LightRay>());
-            sameToSave = true;
-            canvas.Invalidate();
-        }
-
-        public void askOpenSceneFile()
-        {
-            DialogResult ok;
-            if (sameToSave || (scene.bodies.Count == 0 && scene.lightRays.Count == 0))
-            {
-                ok = DialogResult.No;
-            }
-            else
-            {
-                ok = MessageBox.Show(
-                    "Some changes have not been saved. Save now?",
-                    "Not saved!",
-                    MessageBoxButtons.YesNoCancel,
-                    MessageBoxIcon.Warning
-                );
-            }
-
-            if (ok == DialogResult.Yes)
-            {
-                askSaveSceneFile(true);
-            }
-
-            if (ok == DialogResult.Cancel)
-            {
-                return;
-            }
-
-            ok = openSceneBinary.ShowDialog();
-
-            if (ok == DialogResult.OK)
-            {
-                sceneFromFile(openSceneBinary.FileName);
-                lastSave = openSceneBinary.FileName;
-                Text = windowText + lastSave;
-                sameToSave = true;
-            }
-        }
-
-        public void askSaveSceneFile(bool useLastSave)
-        {
-            if (useLastSave && lastSave != "New File")
-            {
-                fileFromScene(lastSave);
-                return;
-            }
-
-            DialogResult ok = saveSceneBinary.ShowDialog();
-
-            if (ok == DialogResult.OK)
-            {
-                fileFromScene(saveSceneBinary.FileName);
-                lastSave = saveSceneBinary.FileName;
-                Text = windowText + lastSave;
-                sameToSave = true;
-            }
-        }
-
-        public void sceneFromFile(string path)
-        {
-            try
-            {
-                scene = FileStruct.toScene(File.ReadAllBytes(path));
-                viewTransform = defaultView;
-                this.canvas.Invalidate();
-            }
-            catch (IOException e)
-            {
-                if (e.HResult == 1)
-                {
-                    MessageBox.Show(
-                        "The file you specified is not a valid Optiks CSharp file.", 
-                        "File error", 
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error
-                    );
-                }
-                if (e.HResult == 2)
-                {
-                    MessageBox.Show(
-                        "The file you specified is either corrupted or somehow invalid", 
-                        "File error",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error
-                    );
-                }
-            }
-        }
-
-        public void fileFromScene(string path)
-        {
-            File.WriteAllBytes(path, FileStruct.toBytes(scene));
-        }
-
-        private void resetView()
-        {
-            viewTransform = defaultView.Clone();
-            canvas.Invalidate();
-        }
-
-        private void setViewMode(ViewModes v)
-        {
-            if (v == StaticParameters.viewMode)
-            {
-                return;
-            }
-            StaticParameters.viewMode = v;
-            selectedBody = Body.NONE;
-            selectedLightRay = LightRay.NONE;
-
-            if (StaticParameters.viewMode == ViewModes.Edit) { scene.reset(); }
-            if (StaticParameters.viewMode == ViewModes.RunSim) { physT.Start(); } 
-
-            canvas.Invalidate();
-        }
-
-        private void updateScene(object sender, EventArgs e)
-        {
-            var all = scene.lightRays.All(x => x.stopped);
-            if (!all)
-            {
-                scene.physicsTick();
+                zoomEnd = true;
                 canvas.Invalidate();
                 return;
             }
-            physT.Stop();
-            setViewMode(ViewModes.GetInfo);
-        }
+            zoomEnd = false;
 
-        private void canvas_Paint(object sender, PaintEventArgs e)
-        {
-            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-
-            //Graph section
-            if (displayAxes)
-            {
-                e.Graphics.SmoothingMode = SmoothingMode.None;
-
-                var zoom = viewTransform.Elements[0];
-                gridSize = zoom;
-
-                var c = 1d;
-                while (gridSize > maxGridSize)
-                {
-                    gridSize /= 10;
-                    c /= 10;
-                }
-                while (gridSize < minGridSize)
-                {
-                    gridSize *= 10;
-                    c *= 10;
-                }
-
-                var dx = viewTransform.Elements[4];
-                var dy = viewTransform.Elements[5];
-                var w = e.Graphics.ClipBounds.Width;
-                var h = e.Graphics.ClipBounds.Height;
-
-                for (float i = dx % gridSize; i < w; i += gridSize)
-                {
-                    Pen p = (i - dx < 1 && i - dx > -1) ? Pens.Black : new Pen(Color.FromArgb(160, Color.LightGray));
-                    e.Graphics.DrawLine(p, i, 0, i, h);
-
-                    var s = Math.Round((i - dx) / gridSize);
-                    if (gridSize >= minTextGridSize && displayGrad)
-                    { 
-                        e.Graphics.DrawString((s * c).ToString(), SystemFonts.DefaultFont, Brushes.Black, new PointF(i, dy));
-                        e.Graphics.DrawLine(Pens.Black, i, dy - 4, i, dy + 4);
-                    }
-                    else if (displayGrad && s % 2 == 0)
-                    {
-                        e.Graphics.DrawString((s * c).ToString(), SystemFonts.DefaultFont, Brushes.Black, new PointF(i, dy));
-                        e.Graphics.DrawLine(Pens.Black, i, dy - 4, i, dy + 4);
-                    }
-                }
-                for (float i = dy % gridSize; i < h; i += gridSize)
-                {
-                    Pen p = (i - dy < 1 && i - dy > -1) ? Pens.Black : new Pen(Color.FromArgb(160, Color.LightGray));
-                    e.Graphics.DrawLine(p, 0, i, w, i);
-
-                    var s = Math.Round((i - dy) / gridSize);
-                    if (gridSize >= minTextGridSize && displayGrad)
-                    {
-                        e.Graphics.DrawString((s * c).ToString(), SystemFonts.DefaultFont, Brushes.Black, new PointF(dx, i));
-                        e.Graphics.DrawLine(Pens.Black, dx - 4, i, dx + 4, i);
-                    }
-                    else if (displayGrad && s % 2 == 0)
-                    {
-                        e.Graphics.DrawString((s * c).ToString(), SystemFonts.DefaultFont, Brushes.Black, new PointF(dx, i));
-                        e.Graphics.DrawLine(Pens.Black, dx - 4, i, dx + 4, i);
-                    }
-                }
-
-                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            }
-
-            scene.renderBodies(e.Graphics, viewTransform);
-            scene.renderLightRays(e.Graphics, viewTransform);
-
-            //Selected hitbox & body
-            if (selectedBody)
-            {
-                var points = new PointF[] { selectedBody.bounds.Location,
-                    selectedBody.bounds.Location + selectedBody.bounds.Size };
-
-                viewTransform.TransformPoints(points);
-                e.Graphics.DrawRectangle(
-                    new Pen(Color.LightGreen, 2), 
-                    points[0].X, 
-                    points[0].Y, 
-                    points[1].X - points[0].X, 
-                    points[1].Y - points[0].Y
-                );
-
-                foreach (Line l in selectedBody.segments)
-                {
-                    var vp = viewTransform * l.vertex;
-                    if (l.type != LineTypes.Straight)
-                    {
-                        Pen pen = (l.type == LineTypes.CircleArc) ? Pens.Orange : Pens.Green;
-                        Brush brush = (l.type == LineTypes.CircleArc) ? Brushes.Orange : Brushes.Green;
-
-                        var fp = viewTransform * l.focalPoint;
-                        e.Graphics.DrawLine(pen, vp, fp);
-                        fp.render(3, brush, e.Graphics);
-                    }
-                    vp.render(3, Brushes.Blue, e.Graphics);
-                }
-            }
-
-            //Seected lightray
-            if (selectedLightRay)
-            {
-                selectedLightRay.rays[0].render(selectedLightRay.pen, e.Graphics, viewTransform);
-                lightRayRotor.display(selectedLightRay.rays[0].udir, e.Graphics, viewTransform);
-
-                foreach (Body b in scene.bodies)
-                {
-                    foreach (Line l in b.segments)
-                    {
-                        var vp = viewTransform * l.vertex;
-                        if (l.type != LineTypes.Straight)
-                        {
-                            Pen pen = (l.type == LineTypes.CircleArc) ? Pens.Orange : Pens.Green;
-                            Brush brush = (l.type == LineTypes.CircleArc) ? Brushes.Orange : Brushes.Green;
-                            
-                            var fp = viewTransform * l.focalPoint;
-                            e.Graphics.DrawLine(pen, vp, fp);
-                            fp.render(3, brush, e.Graphics);
-                        }
-                        vp.render(3, Brushes.Blue, e.Graphics);
-                    }
-                }
-            }
-
-            //Sides change color when you are focused
-            Color col = canvas.Focused ? Color.Black : Color.LightGray;
-            ControlPaint.DrawBorder(e.Graphics, canvas.ClientRectangle, col, ButtonBorderStyle.Solid);
-        }
-
-        public void canvas_MouseWheel(object sender, MouseEventArgs e)
-        {
             viewTransform.Translate(-e.X, -e.Y, MatrixOrder.Append);
             viewTransform.Scale(1 + (float)e.Delta / 1000, 1 + (float)e.Delta / 1000, MatrixOrder.Append);
             viewTransform.Translate(e.X, e.Y, MatrixOrder.Append);
@@ -513,12 +136,6 @@ namespace Optiks_CSharp
             {
                 canvas_MouseWheel(false, new MouseEventArgs(MouseButtons.None, 0, mousePos.X, mousePos.Y, -100));
             }
-            if (e.KeyCode == Keys.R)
-            {
-                Vector start = viewTransform.inverseTransform(canvas.PointToClient(Cursor.Position));
-                scene.lightRays.Add(new LightRay(new Ray(start, new Vector(0, -1)), 10, Pens.Green));
-                canvas.Invalidate();
-            }
         }
 
         private void canvas_MouseLeave(object sender, EventArgs e)
@@ -548,7 +165,8 @@ namespace Optiks_CSharp
             foreach (LightRay r in scene.lightRays)
             {
 
-                if ((scaledMousePos - r.rays[0].start).len() * viewTransform.Elements[0] <= 7) {
+                if ((scaledMousePos - r.rays[0].start).len() * viewTransform.Elements[0] <= 7)
+                {
                     selectedLightRay = r;
                     selectedLightRayIndex = i;
                     lightRayRotor = new PointRotor(selectedLightRay.rays[0].start);
@@ -654,8 +272,8 @@ namespace Optiks_CSharp
             StaticParameters.useDiffraction = !StaticParameters.useDiffraction;
             MessageBox.Show(
                 "Turned diffraction " + ((StaticParameters.useDiffraction) ? "on." : "off."),
-                "Info", 
-                MessageBoxButtons.OK, 
+                "Info",
+                MessageBoxButtons.OK,
                 MessageBoxIcon.Information
             );
         }
@@ -680,6 +298,90 @@ namespace Optiks_CSharp
                 selectedBody = Body.NONE;
                 canvas.Invalidate();
             }
+        }
+
+        private void deleteAllToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (StaticParameters.viewMode != ViewModes.Edit)
+            {
+                return;
+            }
+            scene.lightRays = new List<LightRay>();
+            scene.bodies = new List<Body>();
+            selectedBody = Body.NONE;
+            selectedLightRay = LightRay.NONE;
+            canvas.Invalidate();
+        }
+
+        private void bodiesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (StaticParameters.viewMode != ViewModes.Edit)
+            {
+                return;
+            }
+            scene.bodies = new List<Body>();
+            selectedBody = Body.NONE;
+            canvas.Invalidate();
+        }
+
+        private void raysToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (StaticParameters.viewMode != ViewModes.Edit)
+            {
+                return;
+            }
+            scene.lightRays = new List<LightRay>();
+            selectedLightRay = LightRay.NONE;
+            canvas.Invalidate();
+        }
+
+        private void copyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (selectedBody)
+            {
+                clipboardBody = selectedBody;
+            }
+            if (selectedLightRay)
+            {
+                ClipboardUdir = new Vector(selectedLightRay.rays[0].udir);
+            }
+        }
+
+        private void cutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (selectedBody)
+            {
+                clipboardBody = selectedBody;
+                deleteToolStripMenuItem_Click(this, new EventArgs());
+            }
+            if (selectedLightRay)
+            {
+                ClipboardUdir = new Vector(selectedLightRay.rays[0].udir);
+                deleteToolStripMenuItem_Click(this, new EventArgs());
+            }
+            canvas.Invalidate();
+        }
+
+        private void pasteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (clipboardBody)
+            {
+                MessageBox.Show("Feature not implemented", "Pasting bodies");
+                return;
+            }
+            if (ClipboardUdir.x != 0 && ClipboardUdir.y != 0)
+            {
+                var r = new LightRay(
+                    new Ray(viewTransform.inverseTransform(canvas.PointToClient(Cursor.Position)),
+                    ClipboardUdir
+                ),
+                
+                scene.lightRays.Add(ClipboardUdir);
+                selectedLightRay = scene.lightRays.Last();
+                lightRayRotor = new PointRotor(selectedLightRay.rays[0].start);
+                movingLray = true;
+            }
+            canvas.Invalidate();
         }
     }
 }

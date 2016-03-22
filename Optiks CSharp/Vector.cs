@@ -35,6 +35,12 @@ namespace Optiks_CSharp
             Y = p.Y;
         }
 
+        public Vector(Vector other)
+        {
+            X = other.Y;
+            Y = other.Y;
+        }
+
         public static Vector fromAngle(double radians, double len)
         {
             return new Vector(Math.Cos(radians) * len, Math.Sin(radians) * len);

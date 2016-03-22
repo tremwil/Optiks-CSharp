@@ -13,7 +13,7 @@ namespace Optiks_CSharp
         Straight,
         CircleArc,
         Parabolic,
-        Conic
+        Hyperbolic
     }
 
     abstract class Line
@@ -132,6 +132,12 @@ namespace Optiks_CSharp
             bezierHandle = 2 * vertex - start * 0.5 - end * 0.5;
 
             weight = 1;
+            e = 1;
+        }
+
+        public static ParabolicBezier fromFoci(Vector start, Vector end, double signedFoci)
+        {
+            return new ParabolicBezier(start, end, (start - end).lenSqr() / (signedFoci * 16));
         }
 
         public override Vector norm(Vector contactPoint)
@@ -142,11 +148,16 @@ namespace Optiks_CSharp
         }
     }
 
-    class ConicSegment: Line
+    class HyperbolicSurface: Line
     {
-        public ConicSegment(Vector start, Vector end, double signedHeight, double w)
+        public HyperbolicSurface(Vector start, Vector end, double signedHeight, double eccentricity)
         {
-            type = LineTypes.Conic;
+            type = LineTypes.Hyperbolic;
+
+            if (eccentricity < 1 + MathExt.EPSILON)
+            {
+                throw new ArgumentException("Eccentricity must be bigger than 1 + EPSILON");
+            }
 
             this.start = start;
             this.end = end;
@@ -157,27 +168,45 @@ namespace Optiks_CSharp
             height = Math.Abs(signedHeight);
             width = tangent.len();
 
+            e = eccentricity;
+
+            var e2x4 = 4 * eccentricity * eccentricity;
+            var t2 = width * width;
+            var h2 = height * height;
+            var w = ((e2x4 - 4) * h2 + t2) / ((4 - e2x4) * h2 + t2);
+            Vector M = start + tangent / 2;
+
             weight = w;
-            vertex = start + tangent / 2 + normal * signedHeight;
-            bezierHandle = start + tangent / 2 + normal * signedHeight * (w + 1) / w;
+            vertex = M + normal * signedHeight;
+            bezierHandle = M + normal * signedHeight * (w + 1) / w;
 
-            Complex b0 = start;
-            Complex b1 = bezierHandle;
-            Complex b2 = end;
+            var wp1 = (w + 1); var wm1 = (w - 1);
+            a = height / wm1;
+            c = 0.5 * Math.Sqrt((4 * h2 * wp1 + t2 * wm1) / (wm1 * wm1 * wp1));
+            b = Math.Sqrt(c * c - a * a);
 
-            double a = 1 / (1 - w * w);
-            Complex M = 0.5 * (b0 + b2);
-            Complex d = (1 - a) * b1 * b1 + a * b0 * b2;
-            Complex C = (1 - a) * b1 + a * M; center = C;
-            Complex c = Complex.Sqrt(C * C - d);
+            center = vertex + normal * pointCW * a;
+            focalPoint = center + normal * pointCW * c;
+        }
 
-            center = C;
-            focalPoint = C - c;
-            this.a = (vertex - center).len();
-            this.c = c.Magnitude;
-            this.b = Math.Sqrt(this.c * this.c - this.a * this.a);
-            this.e = this.c / this.a;
-            Console.WriteLine("nothing");
+        public static HyperbolicSurface fromFoci(Vector start, Vector end, double signedFoci, double e)
+        {
+            var t = (start - end).len();
+            var t2 = t * t;
+            var f = Math.Abs(signedFoci);
+            var e2 = e * e;
+            var efx8 = (e - 1) * f * 8;
+
+            var eqVal = 0.5 * t / Math.Sqrt(e2 - 1) - 0.0005 * t;
+            if (f <= eqVal)
+            {
+                return new HyperbolicSurface(start, end, Math.Sign(signedFoci) * eqVal, e);
+            }
+
+            var sqrt = Math.Sqrt(4 * (4 * e2 - 8 * e + 4) * t2 + efx8 * efx8);
+            var H = 0.125 * (sqrt - efx8) / (e2 - 2 * e + 1) * Math.Sign(signedFoci);
+
+            return new HyperbolicSurface(start, end, H, e);
         }
 
         public override Vector norm(Vector contactPoint)
@@ -186,11 +215,16 @@ namespace Optiks_CSharp
             var cosa = normal.x;
 
             var tCP = new Vector(
-                (contactPoint.x - center.x) * cosa - (contactPoint.y - center.y) * sina,
+                (contactPoint.y - center.y) * sina - (contactPoint.x - center.x) * cosa,
                 (contactPoint.x - center.x) * sina + (contactPoint.y - center.y) * cosa
             );
 
-            return new Vector(tCP.y / (b * b), tCP.x / (a * a)).unit();
+            var norm = new Vector(tCP.x / (a * a), tCP.y / (b * b)).unit();
+
+            return new Vector(
+                norm.x * cosa + norm.y * sina,
+                norm.y * cosa - norm.x * sina
+            ) * pointCW;
         }
     }
 }

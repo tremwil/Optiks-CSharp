@@ -13,6 +13,7 @@ namespace Optiks_CSharp
         public double distance;
         public Vector contactPoint;
         public Vector normal;
+        public Vector newStart = new Vector(0, 0);
         public Line segment;
         public Body body = Body.NONE;
         public Body secondBody = Body.NONE;
@@ -281,7 +282,7 @@ namespace Optiks_CSharp
                             r = parabolaIntersect(line);
                             break;
 
-                        case LineTypes.Conic:
+                        case LineTypes.Hyperbolic:
                             r = conicIntersect(line);
                             break;
                     }  
@@ -351,7 +352,7 @@ namespace Optiks_CSharp
                 if (StaticParameters.viewMode == ViewModes.GetInfo && StaticParameters.showRayNormals)
                 {
                     var n = (udir * collision.normal < 0) ? collision.normal : -collision.normal;
-                    g.DrawLine(Pens.Red, endPoint - n * 30, endPoint + n * 30);
+                    g.DrawLine(Pens.Red, endPoint, endPoint + n * 30);
                 }
             }
             g.DrawLine(p, nstart, endPoint);

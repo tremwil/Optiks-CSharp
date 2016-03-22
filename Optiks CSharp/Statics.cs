@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using System.Reflection.Emit;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Runtime.Serialization;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Optiks_CSharp
 {
@@ -94,6 +97,32 @@ namespace Optiks_CSharp
         public static double cross(this Vector A, Vector B)
         {
             return A.x * B.y - A.y * B.x;
+        }
+    }
+
+    public static class Extensions
+    {
+        public static T DeepCopy<T>(this T source)
+        {
+            if (!typeof(T).IsSerializable)
+            {
+                throw new ArgumentException("The type must be serializable.", "source");
+            }
+
+            // Don't serialize a null object, simply return the default for that object
+            if (Object.ReferenceEquals(source, null))
+            {
+                return default(T);
+            }
+
+            IFormatter formatter = new BinaryFormatter();
+            Stream stream = new MemoryStream();
+            using (stream)
+            {
+                formatter.Serialize(stream, source);
+                stream.Seek(0, SeekOrigin.Begin);
+                return (T)formatter.Deserialize(stream);
+            }
         }
     }
 
