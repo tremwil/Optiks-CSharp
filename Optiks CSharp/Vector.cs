@@ -37,7 +37,7 @@ namespace Optiks_CSharp
 
         public Vector(Vector other)
         {
-            X = other.Y;
+            X = other.X;
             Y = other.Y;
         }
 

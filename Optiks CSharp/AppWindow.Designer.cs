@@ -33,9 +33,13 @@
             this.tabs = new System.Windows.Forms.TabControl();
             this.valueEdit = new System.Windows.Forms.TabPage();
             this.treeViewPanel = new System.Windows.Forms.TabPage();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.textBox2 = new System.Windows.Forms.TextBox();
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
             this.baseContainer = new System.Windows.Forms.TableLayoutPanel();
             this.logoContainer = new System.Windows.Forms.PictureBox();
-            this.canvas = new Optiks_CSharp.DrawingPanel();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.newFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -50,6 +54,7 @@
             this.deleteAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.bodiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.raysToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.angleClippingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.simulationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.runSimulationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -62,9 +67,13 @@
             this.crossToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.rayNormalsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.raySurfaceAnglesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.antiAliasingAAToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.physicsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.diffractionNYEToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.canvas = new Optiks_CSharp.DrawingPanel();
             this.tabs.SuspendLayout();
+            this.treeViewPanel.SuspendLayout();
+            this.groupBox1.SuspendLayout();
             this.baseContainer.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.logoContainer)).BeginInit();
             this.menuStrip1.SuspendLayout();
@@ -101,13 +110,63 @@
             // 
             // treeViewPanel
             // 
+            this.treeViewPanel.Controls.Add(this.groupBox1);
             this.treeViewPanel.Location = new System.Drawing.Point(4, 22);
             this.treeViewPanel.Name = "treeViewPanel";
             this.treeViewPanel.Padding = new System.Windows.Forms.Padding(3);
             this.treeViewPanel.Size = new System.Drawing.Size(187, 435);
             this.treeViewPanel.TabIndex = 1;
-            this.treeViewPanel.Text = "Advanced edtition";
+            this.treeViewPanel.Text = "Settings";
             this.treeViewPanel.UseVisualStyleBackColor = true;
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.textBox2);
+            this.groupBox1.Controls.Add(this.textBox1);
+            this.groupBox1.Controls.Add(this.label2);
+            this.groupBox1.Controls.Add(this.label1);
+            this.groupBox1.Location = new System.Drawing.Point(6, 6);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(175, 100);
+            this.groupBox1.TabIndex = 0;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Clipping Angle";
+            // 
+            // textBox2
+            // 
+            this.textBox2.Location = new System.Drawing.Point(65, 60);
+            this.textBox2.Name = "textBox2";
+            this.textBox2.Size = new System.Drawing.Size(100, 20);
+            this.textBox2.TabIndex = 5;
+            this.textBox2.Text = "5";
+            this.textBox2.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.textBox2_PreviewKeyDown);
+            // 
+            // textBox1
+            // 
+            this.textBox1.Location = new System.Drawing.Point(65, 34);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(100, 20);
+            this.textBox1.TabIndex = 4;
+            this.textBox1.Text = "22.5";
+            this.textBox1.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.textBox1_PreviewKeyDown);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(0, 60);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(52, 13);
+            this.label2.TabIndex = 3;
+            this.label2.Text = "Sensivity:";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(0, 34);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(58, 13);
+            this.label1.TabIndex = 1;
+            this.label1.Text = "Angle size:";
             // 
             // baseContainer
             // 
@@ -139,20 +198,6 @@
             this.logoContainer.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.logoContainer.TabIndex = 4;
             this.logoContainer.TabStop = false;
-            // 
-            // canvas
-            // 
-            this.canvas.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            this.canvas.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.canvas.Location = new System.Drawing.Point(204, 3);
-            this.canvas.Name = "canvas";
-            this.canvas.Size = new System.Drawing.Size(597, 461);
-            this.canvas.TabIndex = 5;
-            this.canvas.SizeChanged += new System.EventHandler(this.canvas_SizeChanged);
-            this.canvas.Paint += new System.Windows.Forms.PaintEventHandler(this.canvas_Paint);
-            this.canvas.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.canvas_MouseDoubleClick);
-            this.canvas.MouseEnter += new System.EventHandler(this.canvas_MouseEnter);
-            this.canvas.MouseLeave += new System.EventHandler(this.canvas_MouseLeave);
             // 
             // menuStrip1
             // 
@@ -219,7 +264,8 @@
             this.cutToolStripMenuItem,
             this.pasteToolStripMenuItem,
             this.deleteToolStripMenuItem,
-            this.deleteAllToolStripMenuItem});
+            this.deleteAllToolStripMenuItem,
+            this.angleClippingToolStripMenuItem});
             this.editToolStripMenuItem1.Name = "editToolStripMenuItem1";
             this.editToolStripMenuItem1.Size = new System.Drawing.Size(39, 20);
             this.editToolStripMenuItem1.Text = "Edit";
@@ -283,11 +329,21 @@
             // 
             this.raysToolStripMenuItem.Name = "raysToolStripMenuItem";
             this.raysToolStripMenuItem.ShortcutKeyDisplayString = "";
-            this.raysToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
-            | System.Windows.Forms.Keys.D0)));
+            this.raysToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Alt) 
+            | System.Windows.Forms.Keys.D9)));
             this.raysToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.raysToolStripMenuItem.Text = "Rays";
             this.raysToolStripMenuItem.Click += new System.EventHandler(this.raysToolStripMenuItem_Click);
+            // 
+            // angleClippingToolStripMenuItem
+            // 
+            this.angleClippingToolStripMenuItem.Checked = true;
+            this.angleClippingToolStripMenuItem.CheckOnClick = true;
+            this.angleClippingToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.angleClippingToolStripMenuItem.Name = "angleClippingToolStripMenuItem";
+            this.angleClippingToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
+            this.angleClippingToolStripMenuItem.Text = "Angle clipping";
+            this.angleClippingToolStripMenuItem.Click += new System.EventHandler(this.angleClippingToolStripMenuItem_Click);
             // 
             // simulationToolStripMenuItem
             // 
@@ -322,7 +378,8 @@
             this.axesToolStripMenuItem,
             this.pointsToolStripMenuItem,
             this.rayNormalsToolStripMenuItem,
-            this.raySurfaceAnglesToolStripMenuItem});
+            this.raySurfaceAnglesToolStripMenuItem,
+            this.antiAliasingAAToolStripMenuItem});
             this.creditsToolStripMenuItem.Name = "creditsToolStripMenuItem";
             this.creditsToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.creditsToolStripMenuItem.Text = "View";
@@ -397,11 +454,24 @@
             // 
             // raySurfaceAnglesToolStripMenuItem
             // 
+            this.raySurfaceAnglesToolStripMenuItem.CheckOnClick = true;
             this.raySurfaceAnglesToolStripMenuItem.Name = "raySurfaceAnglesToolStripMenuItem";
             this.raySurfaceAnglesToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
             | System.Windows.Forms.Keys.A)));
             this.raySurfaceAnglesToolStripMenuItem.Size = new System.Drawing.Size(245, 22);
             this.raySurfaceAnglesToolStripMenuItem.Text = "Ray surface angles";
+            this.raySurfaceAnglesToolStripMenuItem.Click += new System.EventHandler(this.raySurfaceAnglesToolStripMenuItem_Click);
+            // 
+            // antiAliasingAAToolStripMenuItem
+            // 
+            this.antiAliasingAAToolStripMenuItem.Checked = true;
+            this.antiAliasingAAToolStripMenuItem.CheckOnClick = true;
+            this.antiAliasingAAToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.antiAliasingAAToolStripMenuItem.Name = "antiAliasingAAToolStripMenuItem";
+            this.antiAliasingAAToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F2;
+            this.antiAliasingAAToolStripMenuItem.Size = new System.Drawing.Size(245, 22);
+            this.antiAliasingAAToolStripMenuItem.Text = "Anti-Aliasing (AA)";
+            this.antiAliasingAAToolStripMenuItem.Click += new System.EventHandler(this.antiAliasingAAToolStripMenuItem_Click);
             // 
             // physicsToolStripMenuItem
             // 
@@ -417,9 +487,23 @@
             this.diffractionNYEToolStripMenuItem.Name = "diffractionNYEToolStripMenuItem";
             this.diffractionNYEToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Alt) 
             | System.Windows.Forms.Keys.D)));
-            this.diffractionNYEToolStripMenuItem.Size = new System.Drawing.Size(221, 22);
-            this.diffractionNYEToolStripMenuItem.Text = "Diffraction (NE)";
+            this.diffractionNYEToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
+            this.diffractionNYEToolStripMenuItem.Text = "Diffraction";
             this.diffractionNYEToolStripMenuItem.Click += new System.EventHandler(this.diffractionNYEToolStripMenuItem_Click);
+            // 
+            // canvas
+            // 
+            this.canvas.BackColor = System.Drawing.SystemColors.ControlLightLight;
+            this.canvas.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.canvas.Location = new System.Drawing.Point(204, 3);
+            this.canvas.Name = "canvas";
+            this.canvas.Size = new System.Drawing.Size(597, 461);
+            this.canvas.TabIndex = 5;
+            this.canvas.SizeChanged += new System.EventHandler(this.canvas_SizeChanged);
+            this.canvas.Paint += new System.Windows.Forms.PaintEventHandler(this.canvas_Paint);
+            this.canvas.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.canvas_MouseDoubleClick);
+            this.canvas.MouseEnter += new System.EventHandler(this.canvas_MouseEnter);
+            this.canvas.MouseLeave += new System.EventHandler(this.canvas_MouseLeave);
             // 
             // AppWindow
             // 
@@ -435,6 +519,9 @@
             this.Text = "Optiks C# V1.0";
             this.Load += new System.EventHandler(this.AppWindow_Load);
             this.tabs.ResumeLayout(false);
+            this.treeViewPanel.ResumeLayout(false);
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.baseContainer.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.logoContainer)).EndInit();
             this.menuStrip1.ResumeLayout(false);
@@ -480,6 +567,13 @@
         private System.Windows.Forms.ToolStripMenuItem bodiesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem raysToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem raySurfaceAnglesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem angleClippingToolStripMenuItem;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.TextBox textBox2;
+        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ToolStripMenuItem antiAliasingAAToolStripMenuItem;
     }
 }
 

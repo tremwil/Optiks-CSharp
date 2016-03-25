@@ -18,12 +18,11 @@ namespace Optiks_CSharp
         Matrix defaultView = new Matrix();
         Point dragPos;
 
-        bool displayAxes = true;
         bool displayGrad = true;
+        bool AAenabled = true;
         int maxGridSize = 150;
         int minGridSize = 15;
         int minTextGridSize = 30;
-        float gridSize;
 
         Body selectedBody = Body.NONE;
         int selectedBodyIndex = 0;
@@ -38,7 +37,7 @@ namespace Optiks_CSharp
         OpenFileDialog openSceneBinary;
         SaveFileDialog saveSceneBinary;
 
-        Vector ClipboardUdir = new Vector(0, 0);
+        LightRay ClipboardLray = LightRay.NONE;
         Body clipboardBody = Body.NONE;
 
         string lastSave;
@@ -70,24 +69,74 @@ namespace Optiks_CSharp
                 new Body(
                     new List<Line>
                     {
-                        HyperbolicSurface.fromFoci(new Vector(0, 0), new Vector(10, 0), 12, 1.5),
-                        new Segment(new Vector(10, 0), new Vector(10, 4)),
-                        HyperbolicSurface.fromFoci(new Vector(10, 4), new Vector(0, 4), -12, 1.5),
-                        new Segment(new Vector(0, 4), new Vector(0, 0))
+                        new HyperbolicSurface(new Vector(0, 0), new Vector(10, 0), -2, 1.5),
+                        new Segment(new Vector(10, 0), new Vector(10, 0)),
+                        new Segment(new Vector(10, 0), new Vector(0, 0)),
+                        new Segment(new Vector(0, 0), new Vector(0, 0))
                     },
                     1.5,
+                    DispertionCoefs.Moderate,
                     BodyTypes.Refracting,
                     new Pen(Color.Black, 1),
-                    new SolidBrush(Color.FromArgb(50, Color.Aqua)),
+                    new SolidBrush(Color.FromArgb(50, Color.LightSeaGreen)),
                     DrawTypes.Draw | DrawTypes.Fill
-                )
+                ),
             }, new List<LightRay>
             {
                 new LightRay(
-                    new Ray(new Vector(0.3, 2), Vector.fromAngle(-Math.PI/2)),
+                    new Ray(new Vector(1, 4), Vector.fromAngle(-Math.PI/2)),
                     10,
-                    Pens.Green
-                )
+                    480,
+                    2
+                ),
+                new LightRay(
+                    new Ray(new Vector(2, 4), Vector.fromAngle(-Math.PI/2)),
+                    10,
+                    500,
+                    2
+                ),
+                new LightRay(
+                    new Ray(new Vector(3, 4), Vector.fromAngle(-Math.PI/2)),
+                    10,
+                    520,
+                    2
+                ),
+                new LightRay(
+                    new Ray(new Vector(4, 4), Vector.fromAngle(-Math.PI/2)),
+                    10,
+                    540,
+                    2
+                ),
+                new LightRay(
+                    new Ray(new Vector(5, 4), Vector.fromAngle(-Math.PI/2)),
+                    10,
+                    560,
+                    2
+                ),
+                new LightRay(
+                    new Ray(new Vector(6, 4), Vector.fromAngle(-Math.PI/2)),
+                    10,
+                    580,
+                    2
+                ),
+                new LightRay(
+                    new Ray(new Vector(7, 4), Vector.fromAngle(-Math.PI/2)),
+                    10,
+                    600,
+                    2
+                ),
+                new LightRay(
+                    new Ray(new Vector(8, 4), Vector.fromAngle(-Math.PI/2)),
+                    10,
+                    620,
+                    2
+                ),
+                new LightRay(
+                    new Ray(new Vector(9, 4), Vector.fromAngle(-Math.PI/2)),
+                    10,
+                    640,
+                    2
+                ),
             });
 
             setViewMode(ViewModes.Edit);

@@ -10,13 +10,23 @@ using System.IO;
 using System.Windows.Forms;
 using System.Drawing.Drawing2D;
 
+/* 
+    THIS FILE CONTAINS ALL DESIGNER GENERATED EVENT HANDLERS.
+*/
+
 namespace Optiks_CSharp
 {
     public partial class AppWindow : Form
     {
         public void canvas_MouseWheel(object sender, MouseEventArgs e)
         {
-            if (viewTransform.Elements[0] > 500000 && e.Delta > 0)
+            if (viewTransform.Elements[0] > 10e+5 && e.Delta > 0)
+            {
+                zoomEnd = true;
+                canvas.Invalidate();
+                return;
+            }
+            if (viewTransform.Elements[0] < 10e-9 && e.Delta < 0)
             {
                 zoomEnd = true;
                 canvas.Invalidate();
@@ -33,6 +43,9 @@ namespace Optiks_CSharp
 
         public void canvas_MouseMove(object sender, MouseEventArgs e)
         {
+            var scaledMousePos = viewTransform.inverseTransform(e.Location);
+            this.canvas.Invalidate();
+
             if (e.Button.HasFlag(MouseButtons.Right))
             {
                 if (dragPos.X == -1 && dragPos.Y == -1)
@@ -46,8 +59,6 @@ namespace Optiks_CSharp
                 viewTransform.Translate(delta.X, delta.Y, MatrixOrder.Append);
 
                 dragPos = new Point(e.X, e.Y);
-
-                this.canvas.Invalidate();
             }
             else
             {
@@ -76,10 +87,19 @@ namespace Optiks_CSharp
                     if (movingLray)
                     {
                         sameToSave = false;
-                        selectedLightRay.rays[0].start = viewTransform.inverseTransform(e.Location);
+                        selectedLightRay.rays[0].start = scaledMousePos;
                         lightRayRotor.rotationCenter = selectedLightRay.rays[0].start;
+
+                        if (StaticParameters.displayGrid)
+                        {
+                            var cPoint = MathExt.GridPoint(scaledMousePos, StaticParameters.sizeMultiplier);
+                            if ((cPoint - scaledMousePos).len() * viewTransform.Elements[0] < 7)
+                            {
+                                selectedLightRay.rays[0].start = cPoint;
+                                lightRayRotor.rotationCenter = cPoint;
+                            }
+                        }
                     }
-                    canvas.Invalidate();
                 }
             }
         }
@@ -215,7 +235,7 @@ namespace Optiks_CSharp
 
         private void axesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            displayAxes = !displayAxes;
+            StaticParameters.displayGrid = !StaticParameters.displayGrid;
             canvas.Invalidate();
         }
 
@@ -269,9 +289,9 @@ namespace Optiks_CSharp
 
         private void diffractionNYEToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            StaticParameters.useDiffraction = !StaticParameters.useDiffraction;
+            StaticParameters.useDispersion = !StaticParameters.useDispersion;
             MessageBox.Show(
-                "Turned diffraction " + ((StaticParameters.useDiffraction) ? "on." : "off."),
+                "Turned diffraction " + ((StaticParameters.useDispersion) ? "on." : "off."),
                 "Info",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information
@@ -339,11 +359,13 @@ namespace Optiks_CSharp
         {
             if (selectedBody)
             {
+                ClipboardLray = LightRay.NONE;
                 clipboardBody = selectedBody;
             }
             if (selectedLightRay)
             {
-                ClipboardUdir = new Vector(selectedLightRay.rays[0].udir);
+                clipboardBody = Body.NONE;
+                ClipboardLray = selectedLightRay.Clone();
             }
         }
 
@@ -351,12 +373,14 @@ namespace Optiks_CSharp
         {
             if (selectedBody)
             {
+                ClipboardLray = LightRay.NONE;
                 clipboardBody = selectedBody;
                 deleteToolStripMenuItem_Click(this, new EventArgs());
             }
             if (selectedLightRay)
             {
-                ClipboardUdir = new Vector(selectedLightRay.rays[0].udir);
+                clipboardBody = Body.NONE;
+                ClipboardLray = selectedLightRay.Clone();
                 deleteToolStripMenuItem_Click(this, new EventArgs());
             }
             canvas.Invalidate();
@@ -369,18 +393,70 @@ namespace Optiks_CSharp
                 MessageBox.Show("Feature not implemented", "Pasting bodies");
                 return;
             }
-            if (ClipboardUdir.x != 0 && ClipboardUdir.y != 0)
+            if (ClipboardLray)
             {
-                var r = new LightRay(
-                    new Ray(viewTransform.inverseTransform(canvas.PointToClient(Cursor.Position)),
-                    ClipboardUdir
-                ),
-                
-                scene.lightRays.Add(ClipboardUdir);
+                scene.lightRays.Add(ClipboardLray.Clone());
                 selectedLightRay = scene.lightRays.Last();
+                selectedLightRay.rays[0].start = viewTransform.inverseTransform(canvas.PointToClient(Cursor.Position));
                 lightRayRotor = new PointRotor(selectedLightRay.rays[0].start);
                 movingLray = true;
             }
+            canvas.Invalidate();
+        }
+
+        private void raySurfaceAnglesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            StaticParameters.showSurfaceAngles = !StaticParameters.showSurfaceAngles;
+            canvas.Invalidate();
+        }
+
+        private void angleClippingToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            StaticParameters.angleLocking = !StaticParameters.angleLocking;
+            canvas.Invalidate();
+        }
+
+        private void textBox1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            if (e.KeyCode != Keys.Enter) { return; }
+
+            try
+            {
+                StaticParameters.angleLockVal = Convert.ToDouble(textBox1.Text) * MathExt.RADIANS;
+            }
+            catch
+            {
+                MessageBox.Show(
+                    "Incorrect input",
+                    "Warning",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+            }
+        }
+
+        private void textBox2_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            if (e.KeyCode != Keys.Enter) { return; }
+
+            try
+            {
+                StaticParameters.sensivity = Convert.ToDouble(textBox2.Text) * MathExt.RADIANS;
+            }
+            catch
+            {
+                MessageBox.Show(
+                    "Incorrect input",
+                    "Warning",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+            }
+        }
+
+        private void antiAliasingAAToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AAenabled = !AAenabled;
             canvas.Invalidate();
         }
     }

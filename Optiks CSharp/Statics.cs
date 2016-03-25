@@ -16,6 +16,8 @@ namespace Optiks_CSharp
     {
         public const double EPSILON = 10e-12;
 
+        public const double SQRT2 = 1.4142135623730951;
+
         public const double TAU = 2 * Math.PI;
         /// <summary>
         /// Converts radians to degrees.
@@ -98,9 +100,17 @@ namespace Optiks_CSharp
         {
             return A.x * B.y - A.y * B.x;
         }
+
+        public static Vector GridPoint(Vector p, double sizeMult)
+        {
+            return new Vector(
+                Math.Round(p.x / sizeMult) * sizeMult,
+                Math.Round(p.y / sizeMult) * sizeMult
+            );
+        }
     }
 
-    public static class Extensions
+    public static class ExtensionsAndMethods
     {
         public static T DeepCopy<T>(this T source)
         {
@@ -122,6 +132,37 @@ namespace Optiks_CSharp
                 formatter.Serialize(stream, source);
                 stream.Seek(0, SeekOrigin.Begin);
                 return (T)formatter.Deserialize(stream);
+            }
+        }
+
+        public static Color toRGB(float hue)
+        {
+            int i;
+            float f;
+
+            hue /= 60;
+            i = (int)Math.Floor(hue);
+            f = 1 - Math.Abs(hue % 2 - 1);
+
+            switch (i)
+            {
+                case 0:
+                    return Color.FromArgb(255, (int)(f * 255), 0);
+
+                case 1:
+                    return Color.FromArgb((int)(f * 255), 255, 0);
+
+                case 2:
+                    return Color.FromArgb(0, 255, (int)(f * 255));
+
+                case 3:
+                    return Color.FromArgb(0, (int)(f * 255), 255);
+
+                case 4:
+                    return Color.FromArgb((int)(f * 255), 0, 255);
+
+                default:
+                    return Color.FromArgb(255, 0, (int)(f * 255));
             }
         }
     }
@@ -159,7 +200,16 @@ namespace Optiks_CSharp
         public static PointDisplayModes pointDisplay = PointDisplayModes.Circle;
         public static ViewModes viewMode = ViewModes.Edit;
         public static bool showRayNormals = false;
+        public static bool showSurfaceAngles = false;
 
-        public static bool useDiffraction = false;
+        public static float gridSize;
+        public static double sizeMultiplier;
+        public static bool displayGrid = true;
+
+        public static bool angleLocking = true;
+        public static double angleLockVal = 22.5 * MathExt.RADIANS;
+        public static double sensivity = 5 * MathExt.RADIANS;
+
+        public static bool useDispersion = false;
     }
 }

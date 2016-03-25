@@ -141,15 +141,27 @@ namespace Optiks_CSharp
             foreach (Vector clip in locks)
             {
                 var dist = (scaledMousePos - clip).lenSqr();
-                if (dist < smallestDist) { smallestDist = dist; closest = clip; }
+                if ((dist < smallestDist && smallestDist >= 1 && dist >= 1) || 
+                    (dist > smallestDist && smallestDist <= 1 && dist <= 1))
+                { smallestDist = dist; closest = clip; }
             }
 
             if (smallestDist * t.Elements[0] * t.Elements[0] <= 25)
             {
                 scaledMousePos = closest;
             }
+            var tan = (scaledMousePos - rotationCenter);
+            var angle = Math.PI - Math.Atan2(tan.y, -tan.x);
+            var cang = Math.Round(angle / StaticParameters.angleLockVal) * StaticParameters.angleLockVal;
 
-            unitp = (scaledMousePos - rotationCenter).unit();
+            if (Math.Abs(cang - angle) < StaticParameters.sensivity && StaticParameters.angleLocking)
+            {
+                unitp = Vector.fromAngle(cang);
+            }
+            else
+            {
+                unitp = tan.unit();
+            }
         }
 
         public override void display(Vector upoint, Graphics g, Matrix t)
@@ -160,7 +172,7 @@ namespace Optiks_CSharp
 
             g.DrawArc(Pens.OrangeRed, new RectangleF(tCenter - radiusV, radiusV * 2), angle, 360 - angle);
             g.DrawPie(Pens.LawnGreen, new RectangleF(tCenter - radiusV, radiusV * 2), 0, angle);
-            g.DrawString(Math.Round(angle, 2).ToString(), SystemFonts.DefaultFont, Brushes.Black, tCenter + new Vector(-5, 8));
+            g.DrawString(Math.Round(angle, 2).ToString() + "°", SystemFonts.DefaultFont, Brushes.Black, tCenter + new Vector(-5, 8));
         }
     }
 }

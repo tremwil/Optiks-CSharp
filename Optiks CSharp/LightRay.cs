@@ -8,10 +8,12 @@ using System.Drawing.Drawing2D;
 
 namespace Optiks_CSharp
 {
-    class LightRay : ICloneable
+    class LightRay
     {
         public List<Ray> rays;
         public int maxRays;
+        public float wavelength;
+
         public Pen pen;
 
         public bool stopped;
@@ -26,6 +28,20 @@ namespace Optiks_CSharp
             pen = p;
             stopped = false;
             empty = false;
+
+            wavelength = 650 - 35 * p.Color.GetHue() / 48;
+        }
+
+        public LightRay(Ray startRay, int maxRays, float wavelength, float width)
+        {
+            rays = new List<Ray>(maxRays) { startRay };
+            this.maxRays = maxRays;
+            this.wavelength = wavelength;
+            stopped = false;
+            empty = false;
+
+            var hue = 48 * (650 - wavelength) / 35;
+            pen = new Pen(ExtensionsAndMethods.toRGB(hue), width);
         }
 
         public LightRay()
@@ -109,6 +125,7 @@ namespace Optiks_CSharp
                     stopped = true;
                     return;
                 }
+                rays.Last().collision.newUdir = reflect;
                 ray2 = new Ray(col.contactPoint, reflect);
                 rays.Add(ray2);
 
@@ -120,17 +137,30 @@ namespace Optiks_CSharp
 
             if (col.secondBody)
             { // Body - Body
-                n1 = col.body.refractionIndex;
-                n2 = col.secondBody.refractionIndex;
+                n1 = getDispersion(col.body);
+                n2 = getDispersion(col.secondBody);
+
+                if (col.secondBody.type == BodyTypes.Reflecting)
+                {
+                    rays.Last().collision.newUdir = reflect;
+                    ray2 = new Ray(col.contactPoint, reflect);
+                    rays.Add(ray2);
+                    return;
+                }
+                if (col.secondBody.type == BodyTypes.Absorbing)
+                {
+                    stopped = true;
+                    return;
+                }
             }
             else if (col.normal * ray.udir > 0)
             { // Air - body
                 n1 = scene.airRefractionIndex;
-                n2 = col.body.refractionIndex;
+                n2 = getDispersion(col.body);
             }
             else
             { // Body - Air
-                n1 = col.body.refractionIndex;
+                n1 = getDispersion(col.body);
                 n2 = scene.airRefractionIndex;
             }
 
@@ -139,12 +169,14 @@ namespace Optiks_CSharp
 
             if (cos2Sqr < 0)
             { // Total internal refraction
+                rays.Last().collision.newUdir = reflect;
                 ray2 = new Ray(col.contactPoint, reflect);
             }
             else
             {
                 double cos2 = Math.Sqrt(cos2Sqr);
                 Vector refract = r * l + (r * cos1 - cos2) * n;
+                rays.Last().collision.newUdir = refract;
                 ray2 = new Ray(col.contactPoint, refract);
             }
 
@@ -166,6 +198,20 @@ namespace Optiks_CSharp
                 maxRays,
                 new Pen(pen.Brush, pen.Width)
             );
+        }
+
+        public double getDispersion(Body b)
+        {
+            if (!StaticParameters.useDispersion)
+            {
+                return b.refractionIndex;
+            }
+
+            var w = wavelength;
+            var n = b.refractionIndex;
+            var a = b.abbeNumber;
+
+            return n + (589.3 - w) * 5 * 10e+5 / (a * 589.3 * w * w);
         }
     }
 }

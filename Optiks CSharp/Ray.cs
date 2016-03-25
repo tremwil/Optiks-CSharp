@@ -13,7 +13,7 @@ namespace Optiks_CSharp
         public double distance;
         public Vector contactPoint;
         public Vector normal;
-        public Vector newStart = new Vector(0, 0);
+        public Vector newUdir = new Vector(0, 0);
         public Line segment;
         public Body body = Body.NONE;
         public Body secondBody = Body.NONE;
@@ -348,12 +348,6 @@ namespace Optiks_CSharp
             else
             {
                 endPoint = transform * collision.contactPoint;
-
-                if (StaticParameters.viewMode == ViewModes.GetInfo && StaticParameters.showRayNormals)
-                {
-                    var n = (udir * collision.normal < 0) ? collision.normal : -collision.normal;
-                    g.DrawLine(Pens.Red, endPoint, endPoint + n * 30);
-                }
             }
             g.DrawLine(p, nstart, endPoint);
         }

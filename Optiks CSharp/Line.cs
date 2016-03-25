@@ -44,6 +44,11 @@ namespace Optiks_CSharp
         public double e;
 
         public abstract Vector norm(Vector contactPoint);
+
+        public Line ShallowCopy()
+        {
+            return (Line)MemberwiseClone();
+        }
     }
 
     class Segment: Line
@@ -144,7 +149,7 @@ namespace Optiks_CSharp
         {
             Vector I = -pointCW * normal;
             Vector R = (focalPoint - contactPoint).unit();
-            return ((R + I) * -0.5).unit();
+            return ((R + I) * -0.5).unit() * pointCW;
         }
     }
 
