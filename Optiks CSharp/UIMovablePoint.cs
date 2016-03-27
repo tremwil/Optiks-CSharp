@@ -141,9 +141,7 @@ namespace Optiks_CSharp
             foreach (Vector clip in locks)
             {
                 var dist = (scaledMousePos - clip).lenSqr();
-                if ((dist < smallestDist && smallestDist >= 1 && dist >= 1) || 
-                    (dist > smallestDist && smallestDist <= 1 && dist <= 1))
-                { smallestDist = dist; closest = clip; }
+                if (dist < smallestDist) { smallestDist = dist; closest = clip; }
             }
 
             if (smallestDist * t.Elements[0] * t.Elements[0] <= 25)

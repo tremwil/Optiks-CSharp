@@ -70,12 +70,10 @@ namespace Optiks_CSharp
                     new List<Line>
                     {
                         new HyperbolicSurface(new Vector(0, 0), new Vector(10, 0), -2, 1.5),
-                        new Segment(new Vector(10, 0), new Vector(10, 0)),
-                        new Segment(new Vector(10, 0), new Vector(0, 0)),
-                        new Segment(new Vector(0, 0), new Vector(0, 0))
+                        new HyperbolicSurface(new Vector(10, 0), new Vector(0, 0), -2, 1.5)
                     },
                     1.5,
-                    DispertionCoefs.Moderate,
+                    DispersionCoefs.FKHTi,
                     BodyTypes.Refracting,
                     new Pen(Color.Black, 1),
                     new SolidBrush(Color.FromArgb(50, Color.LightSeaGreen)),
